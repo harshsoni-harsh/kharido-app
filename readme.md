@@ -1,0 +1,1 @@
+This is the E-commerce platform where you can buy different groceries
