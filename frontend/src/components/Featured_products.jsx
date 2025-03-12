@@ -1,6 +1,9 @@
+'use client'
 import React from "react";
 import ProductCard from "./ProductCard";
-import "@/components/Featured_products.css"
+// import "@/components/Featured_products.css"
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 function Featured_products() {
   const product = [
@@ -36,23 +39,28 @@ function Featured_products() {
     },
   ];
 
+  const router = useRouter();
+
   return (
-    <>
-      <div className="flex flex-col p-4 mt-4 ml-16 ">
+    <div className="flex flex-col p-4 mt-4">
+      <div className="flex  flex-row justify-between">
         <div className="text-3xl mb-4 font-bold">Featured Products</div>
-        <div className="list grid  gap-6 w-full max-w-8xl items-center" >
-          {product.map((category, index) => (
-            <ProductCard
-              key={index}
-              image={category.image}
-              name={category.name}
-              rating={category.rating}
-              price={category.price}
-            />
-          ))}
+        <div className=" m-4 text-semibold bg-green-500 rounded-2xl hover:bg-green-700">
+          <Button className='w-full' onClick={() => router.push("/allproduct")}>See all →</Button>
         </div>
       </div>
-    </>
+      <div className=" grid sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-8xl items-center">
+        {product.map((category, index) => (
+          <ProductCard
+            key={index}
+            image={category.image}
+            name={category.name}
+            rating={category.rating}
+            price={category.price}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 

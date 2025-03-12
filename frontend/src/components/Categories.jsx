@@ -34,7 +34,7 @@ const categories = [
 const CategoriesPage = () => {
   return (
     <>
-      <div className="flex flex-col p-4 mt-4 ml-16">
+      <div className="flex flex-col p-4 mt-4">
         <div className="text-3xl mb-4 font-bold ">Shop by Category</div> 
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full max-w-8xl items-center ">
