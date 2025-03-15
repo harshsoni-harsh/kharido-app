@@ -1,11 +1,14 @@
 'use client'
-import React from "react";
+import React , {useState} from "react";
 import ProductCard from "./ProductCard";
 // import "@/components/Featured_products.css"
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 function Featured_products() {
+
+  const [cart , setCart] = useState([]);
+
   const product = [
     {
       name: "Banana",
@@ -39,6 +42,11 @@ function Featured_products() {
     },
   ];
 
+  const addToCart = (product)=>
+  {
+    setCart((prevCart)=> [...prevCart , product]);
+  }
+
   const router = useRouter();
 
   return (
@@ -57,6 +65,7 @@ function Featured_products() {
             name={category.name}
             rating={category.rating}
             price={category.price}
+            addToCart={addToCart}
           />
         ))}
       </div>

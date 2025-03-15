@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import { Star } from "lucide-react";
 
-function ProductCard({ image, name, rating, price, quantity }) {
+function ProductCard({ image, name, rating, price, quantity , addToCart}) {
   return (
     <Card className="pb-4 overflow-hidden transition-transform duration-300 ease-in-out 
                  hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
@@ -21,7 +21,7 @@ function ProductCard({ image, name, rating, price, quantity }) {
             src={image}
             alt={name}
             fill
-            className="object-cover transition-transform pt-0 "
+            className="object-cover transition-transform pt-0"
             priority
           />
         </div>
@@ -50,12 +50,12 @@ function ProductCard({ image, name, rating, price, quantity }) {
           </div>
         </div>
         <div className="mt-4 bg-green-500 rounded-2xl hover:bg-green-700 ">
-          <Button className="w-full">Add to Cart</Button>
+          <Button className="w-full"
+            onClick = {()=>addToCart(product)}
+          >Add to Cart
+          </Button>
         </div>
       </CardContent>
-      {/* <CardFooter className="p-6 pt-0">
-        <Button className="w-full">Add to Cart</Button>
-      </CardFooter> */}
     </Card>
   );
 }

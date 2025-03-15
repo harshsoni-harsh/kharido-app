@@ -7,59 +7,63 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-const initialCartItems = [
-  {
-    id: 1,
-    name: "Organic Bananas",
-    price: 1.99,
-    quantity: 2,
-    image: "/images/banana.jpg",
-    category: "Fruits",
-  },
-  {
-    id: 2,
-    name: "Apple",
-    price: 1.99,
-    quantity: 6,
-    image: "/images/banana.jpg",
-    category: "Fruits",
-  },
-  {
-    id: 3,
-    name: "Coldrinks",
-    price: 1.99,
-    quantity: 3,
-    image: "/images/banana.jpg",
-    category: "Cold Drinks",
-  },
-  {
-    id: 4,
-    name: "Biscuit",
-    price: 1.99,
-    quantity: 1,
-    image: "/images/banana.jpg",
-    category: "Bakery and Biscuit",
-  },
-];
+// const initialCartItems = [
+//   {
+//     id: 1,
+//     name: "Organic Bananas",
+//     price: 45,
+//     quantity: 1,
+//     image: "/images/banana.jpg",
+//     category: "Fruits",
+//   },
+//   {
+//     id: 2,
+//     name: "Apple",
+//     price: 120,
+//     quantity: 1,
+//     image: "/images/banana.jpg",
+//     category: "Fruits",
+//   },
+//   {
+//     id: 3,
+//     name: "Coldrinks",
+//     price: 60,
+//     quantity: 1,
+//     image: "/images/banana.jpg",
+//     category: "Cold Drinks",
+//   },
+//   {
+//     id: 4,
+//     name: "Biscuit",
+//     price: 20,
+//     quantity: 1,
+//     image: "/images/banana.jpg",
+//     category: "Bakery and Biscuit",
+//   },
+// ];
 
 
 
-export default function cartItems() {
+export default function cartItems({initialCartItems}){
+
   const [cartItems, setCartItems] = useState(initialCartItems);
 
   const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
+    if (newQuantity < 1 || newQuantity < "1") return;
 
     setCartItems(
       cartItems.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
+        item.id === id ? { ...item, quantity: newQuantity} : item
       )
-    );
+    ); 
+    
   };
 
   const removeItem = (id) => {
     setCartItems(cartItems.filter((item) => item.id !== id));
   };
+
+  
 
   if (cartItems.length === 0) {
     return (

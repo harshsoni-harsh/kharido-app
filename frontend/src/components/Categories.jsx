@@ -1,7 +1,12 @@
-import React from "react";
+'use client'
+import React, { useEffect, useState } from "react";
 import CategoryCard from "@/components/ui/CategoryCard.jsx";
 import { Button } from "@/components/ui/button";
 import { Ghost } from "lucide-react";
+import axios from "axios";
+
+
+
 
 const categories = [
   {
@@ -31,7 +36,28 @@ const categories = [
   },
 ];
 
+
+
 const CategoriesPage = () => {
+
+  const [productList, setProductList] = useState([]);
+
+  
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await axios.get("https://dummyjson.com/products");
+        setProductList(res.data.products);
+        console.log(res.data.products); // Logging the fetched data instead
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    }
+
+    fetchProducts();
+  }, []);
+
   return (
     <>
       <div className="flex flex-col p-4 mt-4">

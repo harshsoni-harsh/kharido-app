@@ -16,7 +16,7 @@ function Banner() {
               groceries. Free delivery on your first order!
             </p>
           </div>
-          <button className="h-10  w-22 rounded-xl bg-green-500 hover:bg-green-300 duration-300 cursor-pointer mt-6">
+          <button className="h-10  w-22 rounded-xl bg-green-500 hover:bg-green-300 duration-300 cursor-pointer mt-6 text-black">
             Shope now
           </button>
         </div>

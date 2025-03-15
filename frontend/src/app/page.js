@@ -9,7 +9,7 @@ export default function Home() {
        <CategoriesPage/>
        <Featured_products/>
        {/* <ProductCard image={"/images/Backery_biscuit.jpg"} name={"Apple"} price={112} rating={4}  key={9} /> */}
-  
+       
     </div>
   
   ) 

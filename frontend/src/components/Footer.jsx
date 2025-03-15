@@ -20,8 +20,8 @@ function Footer() {
   };
 
   return (
-    <footer className="bg-background border-t bg-slate-200 pl-8">
-      <div className="container px-4 py-10 md:py-16">
+    <footer className="bg-background border-t bg-slate-200 pl-8 mt-16">
+      <div className="container px-4 py-10 md:py-16 mx-auto">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 justify-between">
           {/* Brand Column */}
           <div className="flex flex-col gap-4">

@@ -14,28 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-const initialCartItems = [
-  {
-    id: 1,
-    name: "Organic Bananas",
-    price: 1.99,
-    quantity: 2,
-  },
-  {
-    id: 2,
-    name: "Fresh Avocados",
-    price: 3.49,
-    quantity: 1,
-  },
-  {
-    id: 3,
-    name: "Whole Milk",
-    price: 2.99,
-    quantity: 1,
-  },
-];
 
-export default function CartSummary() {
+
+
+export default function CartSummary({initialCartItems}){
   const [cartItems] = useState(initialCartItems);
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -50,7 +32,7 @@ export default function CartSummary() {
   const total = subtotal + shipping + tax - discount;
 
   const applyPromoCode = () => {
-    if (promoCode.toLowerCase() === "save10" && !isPromoApplied) {
+    if (promoCode.toLowerCase() === "save10" && !isPromoApplied){
       setDiscount(subtotal * 0.1);
       setIsPromoApplied(true);
     }
