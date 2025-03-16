@@ -6,9 +6,7 @@ import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
 
 function Cart() {
-  const [cart, setCart] = useState([]);
-
-  const initialCartItems = [
+  const [cart, setCart] = useState([
     {
       id: 1,
       name: "Organic Bananas",
@@ -41,7 +39,8 @@ function Cart() {
       image: "/images/banana.jpg",
       category: "Bakery and Biscuit",
     },
-  ];
+  ]
+);
 
   const addToCart = (product) => {
     setCart((prevItms) => [...prevItms, product]);
@@ -56,10 +55,10 @@ function Cart() {
 
       <div className="grid gap-8 md:grid-cols-3">
         <div className="md:col-span-2">
-          <CartItems initialCartItems={initialCartItems} />
+          <CartItems cart={cart} setCart={setCart}  />
         </div>
         <div>
-          <CartSummary initialCartItems={initialCartItems} />
+          <CartSummary cart={cart} />
         </div>
       </div>
     </div>

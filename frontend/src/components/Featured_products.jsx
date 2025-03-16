@@ -1,51 +1,47 @@
 'use client'
 import React , {useState} from "react";
 import ProductCard from "./ProductCard";
-// import "@/components/Featured_products.css"
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 function Featured_products() {
-
-  const [cart , setCart] = useState([]);
-
   const product = [
     {
+      id: 1,
       name: "Banana",
       price: 35,
       rating: 4,
       image: "/images/Backery_biscuit.jpg",
     },
     {
+      id: 2,
       name: "Coca Cola",
       price: 95,
       rating: 1,
       image: "/images/Backery_biscuit.jpg",
     },
     {
+      id:3,
       name: "Lays",
       price: 50,
       rating: 3,
       image: "/images/Backery_biscuit.jpg",
     },
     {
+      id:4,
       name: "Apple",
       price: 140,
       rating: 6,
       image: "/images/Backery_biscuit.jpg",
     },
     {
+      id:5,
       name: "Burbone",
       price: 70,
       rating: 4,
       image: "/images/Backery_biscuit.jpg",
     },
   ];
-
-  const addToCart = (product)=>
-  {
-    setCart((prevCart)=> [...prevCart , product]);
-  }
 
   const router = useRouter();
 
@@ -58,14 +54,10 @@ function Featured_products() {
         </div>
       </div>
       <div className=" grid sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-8xl items-center">
-        {product.map((category, index) => (
+        {product.map((category) => (
           <ProductCard
-            key={index}
-            image={category.image}
-            name={category.name}
-            rating={category.rating}
-            price={category.price}
-            addToCart={addToCart}
+            key={category.id}
+            {...category}
           />
         ))}
       </div>
