@@ -415,6 +415,13 @@ export default function product() {
                           ? "warning"
                           : "destructive"
                       }
+                      className={`${
+                        product.status === "In Stock"
+                          ? "bg-green-500 text-white"
+                          : product.status === "Low Stock"
+                          ? "bg-white text-black"
+                          : "bg-red-500 text-white"
+                      }`}
                     >
                       {product.status}
                     </Badge>
