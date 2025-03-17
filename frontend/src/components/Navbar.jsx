@@ -2,10 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import LoginDialog from "../login-dialog";
+import LoginDialog from "./LoginDialog";
 
-
-function Navbar() {
+export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -38,6 +37,9 @@ function Navbar() {
                   </li>
                   <li>
                     <Link href={"/"}>About us</Link>
+                  </li>
+                  <li>
+                    <Link href= {'/admin'}>Admin</Link>
                   </li>
                 </ul>
               </div>
@@ -110,5 +112,3 @@ function Navbar() {
     </>
   );
 }
-
-export default Navbar;
