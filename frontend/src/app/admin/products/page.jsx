@@ -49,78 +49,79 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
+
 // Sample product data
 const products = [
   {
     id: 1,
     name: "Organic Apples",
-    price: 3.99,
+    price: 180,
     category: "Fruits",
     stock: 150,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "In Stock",
   },
   {
     id: 2,
     name: "Fresh Milk",
-    price: 2.49,
+    price: 75,
     category: "Dairy",
     stock: 75,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "In Stock",
   },
   {
     id: 3,
     name: "Whole Wheat Bread",
-    price: 3.29,
+    price: 34,
     category: "Bakery",
     stock: 45,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "Low Stock",
   },
   {
     id: 4,
     name: "Free Range Eggs",
-    price: 4.99,
+    price: 90,
     category: "Dairy",
     stock: 100,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "In Stock",
   },
   {
     id: 5,
     name: "Organic Spinach",
-    price: 2.99,
+    price: 35,
     category: "Vegetables",
     stock: 30,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "Low Stock",
   },
   {
     id: 6,
     name: "Chicken Breast",
-    price: 8.99,
+    price: 220,
     category: "Meat",
     stock: 60,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "In Stock",
   },
   {
     id: 7,
     name: "Atlantic Salmon",
-    price: 12.99,
+    price: 780,
     category: "Seafood",
     stock: 25,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "Low Stock",
   },
   {
     id: 8,
     name: "Avocados",
-    price: 1.99,
+    price: 160,
     category: "Fruits",
     stock: 0,
-    image: "/placeholder.svg?height=50&width=50",
+    image: "/images/banana.jpg",
     status: "Out of Stock",
   },
 ];
@@ -141,15 +142,15 @@ export default function product() {
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
           <p className="text-muted-foreground">Manage your grocery products</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+        <div className="flex items-center gap-2 ">
+          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen} >
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
+              <Button className= "bg-black text-white">
+                <Plus className="mr-2 h-4 w-4 text-white" />
                 Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] bg-white">
               <DialogHeader>
                 <DialogTitle>Add New Product</DialogTitle>
                 <DialogDescription>
@@ -159,11 +160,11 @@ export default function product() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <Label htmlFor="product-name">Product Name</Label>
+                    <Label htmlFor="product-name" className="mb-2 block">Product Name</Label>
                     <Input id="product-name" placeholder="Enter product name" />
                   </div>
                   <div>
-                    <Label htmlFor="price">Price ($)</Label>
+                    <Label htmlFor="price" className="mb-2 block">Price (₹)</Label>
                     <Input
                       id="price"
                       type="number"
@@ -172,11 +173,11 @@ export default function product() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="stock">Stock Quantity</Label>
+                    <Label htmlFor="stock" className="mb-2 block">Stock Quantity</Label>
                     <Input id="stock" type="number" placeholder="0" />
                   </div>
                   <div>
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category" className="mb-2 block">Category</Label>
                     <Select>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
@@ -192,18 +193,18 @@ export default function product() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="brand">Brand</Label>
+                    <Label htmlFor="brand" className="mb-2 block">Brand</Label>
                     <Input id="brand" placeholder="Enter brand name" />
                   </div>
                   <div className="col-span-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description" className="mb-2 block">Description</Label>
                     <Textarea
                       id="description"
                       placeholder="Enter product description"
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label htmlFor="image">Product Images</Label>
+                    <Label htmlFor="image" className="mb-2 block">Product Images</Label>
                     <div className="mt-2 flex items-center gap-4">
                       <Button variant="outline" className="h-24 w-24">
                         <div className="flex flex-col items-center gap-1">
@@ -230,7 +231,7 @@ export default function product() {
           </Dialog>
 
           <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] bg-white">
               <DialogHeader>
                 <DialogTitle>Edit Product</DialogTitle>
                 <DialogDescription>
@@ -241,14 +242,14 @@ export default function product() {
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <Label htmlFor="edit-product-name">Product Name</Label>
+                      <Label htmlFor="edit-product-name"className="mb-2 block">Product Name</Label>
                       <Input
                         id="edit-product-name"
                         defaultValue={selectedProduct.name}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="edit-price">Price ($)</Label>
+                      <Label htmlFor="edit-price" className="mb-2 block">Price (₹)</Label>
                       <Input
                         id="edit-price"
                         type="number"
@@ -257,7 +258,7 @@ export default function product() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="edit-stock">Stock Quantity</Label>
+                      <Label htmlFor="edit-stock" className="mb-2 block">Stock Quantity</Label>
                       <Input
                         id="edit-stock"
                         type="number"
@@ -265,7 +266,7 @@ export default function product() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="edit-category">Category</Label>
+                      <Label htmlFor="edit-category" className="mb-2 block">Category</Label>
                       <Select
                         defaultValue={selectedProduct.category.toLowerCase()}
                       >
@@ -283,18 +284,18 @@ export default function product() {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="edit-brand">Brand</Label>
+                      <Label htmlFor="edit-brand" className="mb-2 block">Brand</Label>
                       <Input id="edit-brand" placeholder="Enter brand name" />
                     </div>
                     <div className="col-span-2">
-                      <Label htmlFor="edit-description">Description</Label>
+                      <Label htmlFor="edit-description" className="mb-2 block">Description</Label>
                       <Textarea
                         id="edit-description"
                         placeholder="Enter product description"
                       />
                     </div>
                     <div className="col-span-2">
-                      <Label htmlFor="edit-image">Product Images</Label>
+                      <Label htmlFor="edit-image" className="mb-2 block">Product Images</Label>
                       <div className="mt-2 flex items-center gap-4">
                         <div className="h-24 w-24 rounded-md border">
                           <Image
@@ -333,9 +334,9 @@ export default function product() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="mr-2 h-4 w-4"/>
                 Export
-                <ChevronDown className="ml-2 h-4 w-4" />
+                <ChevronDown className="ml-2 h-4 w-4"/>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -403,7 +404,7 @@ export default function product() {
                     />
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>₹{product.price.toFixed(2)}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>

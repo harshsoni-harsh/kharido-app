@@ -64,7 +64,7 @@ export function AdminSidebar() {
     <Sidebar>
       <SidebarHeader className="h-14 items-center border-b px-4 justify-center">
         <Link href="/admin" className="flex items-center gap-2 font-semibold">
-          <Package className="h-6 w-6" />
+          <Package className="h-6 w-6"/>
           <span>GroceryAdmin</span>
         </Link>
       </SidebarHeader>
