@@ -350,8 +350,8 @@ export default function product() {
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle>Product Inventory</CardTitle>
+          <div className="flex items-center justify-between mt-5">
+            <CardTitle className="text-lg">Product Inventory</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search products..." className="pl-8" />
