@@ -1,8 +1,14 @@
-import { IsArray, IsDate,IsOptional, IsNumber, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsOptional,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { TotalAmountDTO } from '../common/totalAmount.dto';
 import { OrderItemDTO } from '../common/orderItem.dto';
-
 
 export class CreateOrderDTO {
   @IsString()

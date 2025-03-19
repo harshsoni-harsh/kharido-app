@@ -1,4 +1,10 @@
-import { IsArray, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateReviewDTO {

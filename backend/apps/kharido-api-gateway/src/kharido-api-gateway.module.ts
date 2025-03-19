@@ -8,24 +8,22 @@ import { AdminModule } from './admin/admin.module';
 import { PublicModule } from './public/public.module';
 
 @Module({
-  imports:
-    [
-    
-      ClientsModule.register([
-        {
-          name: 'USERS_CLIENT',
-          transport: Transport.TCP,
-          options: {
-            host: 'localhost',
-            port: 3001, 
-          },
+  imports: [
+    ClientsModule.register([
+      {
+        name: 'USERS_CLIENT',
+        transport: Transport.TCP,
+        options: {
+          host: 'localhost',
+          port: 3001,
         },
-      ]),
-      UsersModule,
-      AdminModule,
-      PublicModule
-    ],
+      },
+    ]),
+    UsersModule,
+    AdminModule,
+    PublicModule,
+  ],
   controllers: [KharidoApiGatewayController],
-  providers: [UsersService]
+  providers: [UsersService],
 })
-export class KharidoApiGatewayModule { }
+export class KharidoApiGatewayModule {}

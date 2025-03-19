@@ -1,8 +1,12 @@
-import { IsArray, IsEmail, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { AddressDTO } from '../common/address.dto';
-
-
 
 export class UpdateUserDTO {
   @IsString()
@@ -26,18 +30,18 @@ export class UpdateUserDTO {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  reviews?: string[]; 
+  reviews?: string[];
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  orders?: string[]; 
+  orders?: string[];
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  shoppingLists?: string[]; 
+  shoppingLists?: string[];
 
   @IsString()
   @IsOptional()
-  cart?: string; 
+  cart?: string;
 }

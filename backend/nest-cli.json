@@ -19,7 +19,7 @@
         "tsConfigPath": "apps/admin/tsconfig.app.json"
       }
     },
-    
+
     "kharido-api-gateway": {
       "type": "application",
       "root": "apps/kharido-api-gateway",

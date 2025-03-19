@@ -1,4 +1,11 @@
-import { IsArray, IsDate, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderItemDTO } from '../common/orderItem.dto';
 import { TotalAmountDTO } from '../common/totalAmount.dto';
@@ -29,16 +36,13 @@ export class UpdateOrderDTO {
   @IsOptional()
   status?: string;
 
-  
   @IsString()
   @IsOptional()
   paymentMode?: string;
 
-
   @IsString()
   @IsOptional()
-  payment?: string; 
-
+  payment?: string;
 
   @IsArray()
   @ValidateNested({ each: true })

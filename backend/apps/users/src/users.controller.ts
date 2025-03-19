@@ -9,17 +9,15 @@ import { CreateUserDto } from 'apps/libs/shared/dto/create/createUser.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-
-  @MessagePattern('create-user')  // Listening for 'create-user' pattern
+  @MessagePattern('create-user') // Listening for 'create-user' pattern
   async createUser(@Payload() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.createUser(createUserDto);
   }
 
-  @MessagePattern('user-all-orders')  
-  async getUserAllOrderMeta(@Payload() email:string) {
-    console.log("HIHI")
-    console.log(email)
+  @MessagePattern('user-all-orders')
+  async getUserAllOrderMeta(@Payload() email: string) {
+    console.log('HIHI');
+    console.log(email);
     return await this.usersService.getAllOrdersMeta(email);
   }
-
 }

@@ -8,10 +8,10 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        port: 3001
+        port: 3001,
       },
-      logger: ['warn', 'log']
-    }
+      logger: ['warn', 'log'],
+    },
   );
   await app.listen();
 }

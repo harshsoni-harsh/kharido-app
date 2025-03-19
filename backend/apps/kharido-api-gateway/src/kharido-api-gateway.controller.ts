@@ -12,7 +12,7 @@ export class KharidoApiGatewayController {
   @Post('create-user')
   async createUser(@Body() createUserDto: CreateUserDto) {
     // Send message to User Microservice with 'create_user' pattern
-    return this.usersService.createUser( createUserDto);
+    return this.usersService.createUser(createUserDto);
   }
   @Post('all-orders')
   async getUserAllOrders(@Body() body: { email: string }) {

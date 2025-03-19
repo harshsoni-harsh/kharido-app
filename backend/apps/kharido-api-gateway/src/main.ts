@@ -23,14 +23,14 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
     options: {
-      host: 'localhost', 
-      port: 3002,        
+      host: 'localhost',
+      port: 3002,
     },
   });
 
   // Start both the HTTP server and the microservice client
   await app.startAllMicroservices(); // Starts the TCP client
-  await app.listen(3000);            // Starts the HTTP server on port 3000
+  await app.listen(3000); // Starts the HTTP server on port 3000
 
   console.log('Gateway API is running on http://localhost:3000');
 }

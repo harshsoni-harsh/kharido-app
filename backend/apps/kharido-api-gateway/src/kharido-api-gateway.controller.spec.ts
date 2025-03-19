@@ -11,7 +11,9 @@ describe('KharidoApiGatewayController', () => {
       providers: [KharidoApiGatewayService],
     }).compile();
 
-    kharidoApiGatewayController = app.get<KharidoApiGatewayController>(KharidoApiGatewayController);
+    kharidoApiGatewayController = app.get<KharidoApiGatewayController>(
+      KharidoApiGatewayController,
+    );
   });
 
   describe('root', () => {

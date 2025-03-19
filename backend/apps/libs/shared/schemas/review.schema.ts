@@ -1,21 +1,21 @@
-
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import * as mongoose from 'mongoose';
 
 export type ReviewDocument = HydratedDocument<Review>;
 
-
-@Schema({collection: "Review"})
+@Schema({ collection: 'Review' })
 export class Review {
-  @Prop({required : true})
+  @Prop({ required: true })
   userName: string;
 
-  @Prop({required : true})
+  @Prop({ required: true })
   userEmail: string;
 
-
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }] , required:true})
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+    required: true,
+  })
   product: mongoose.Schema.Types.ObjectId;
 
   @Prop()
@@ -33,7 +33,6 @@ export class Review {
   @Prop()
   rating: number;
 
-
   @Prop()
   description: string;
 
@@ -41,18 +40,15 @@ export class Review {
   quantity: number;
 
   @Prop()
-  createdAt : Date;
+  createdAt: Date;
 
   @Prop()
-  lastUpdateAt : Date;
+  lastUpdateAt: Date;
 
   @Prop({
     type: [{ property: String, value: String }],
   })
-  specification: {property: string, value: string}[];
-
-  
-
+  specification: { property: string; value: string }[];
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);

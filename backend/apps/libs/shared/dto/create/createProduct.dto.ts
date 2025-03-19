@@ -1,4 +1,10 @@
-import { IsArray, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateProductDTO {
@@ -15,7 +21,6 @@ export class CreateProductDTO {
   @IsString()
   @IsOptional()
   description?: string;
-
 
   @IsNumber()
   @IsOptional()

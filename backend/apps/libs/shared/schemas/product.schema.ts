@@ -1,18 +1,15 @@
-
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import * as mongoose from 'mongoose';
 
 export type ProductDocument = HydratedDocument<Product>;
 
-
-
-@Schema({collection:"Product"})
+@Schema({ collection: 'Product' })
 export class Product {
-  @Prop({required : true})
+  @Prop({ required: true })
   name: string;
 
-  @Prop({required : true})
+  @Prop({ required: true })
   brand: string;
 
   @Prop()
@@ -40,7 +37,7 @@ export class Product {
   taxPercent: number;
 
   @Prop()
-  createdAt : Date;
+  createdAt: Date;
 
   @Prop()
   imageLinks: string[];
@@ -53,36 +50,31 @@ export class Product {
 
   @Prop()
   warrantyPolicy: string;
-  
+
   @Prop()
   searchTags: string[];
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Category' }] })
-   category: mongoose.Types.ObjectId[];
-  
+  category: mongoose.Types.ObjectId[];
 
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Review' }] })
   reviews: mongoose.Types.ObjectId[];
-  
-  @Prop({
-    type: [{ property: String, value: String }],
-  })
-  specification: {property: string, value: string}[];
 
   @Prop({
     type: [{ property: String, value: String }],
   })
+  specification: { property: string; value: string }[];
 
   @Prop({
     type: [{ property: String, value: String }],
   })
-  variants: {property: string, value: string}[];  // for objects like tshirt, like sizes s,m l, xl
+  @Prop({
+    type: [{ property: String, value: String }],
+  })
+  variants: { property: string; value: string }[]; // for objects like tshirt, like sizes s,m l, xl
 
-  
-  
   @Prop()
-  updatedAt : Date;
-
+  updatedAt: Date;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

@@ -1,4 +1,10 @@
-import { IsArray, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateReviewDTO {
@@ -12,7 +18,7 @@ export class UpdateReviewDTO {
 
   @IsString()
   @IsOptional()
-  product?: string; 
+  product?: string;
 
   @IsString()
   @IsOptional()
@@ -20,7 +26,7 @@ export class UpdateReviewDTO {
 
   @IsString()
   @IsOptional()
-  status?: string; 
+  status?: string;
 
   @IsArray()
   @IsString({ each: true })

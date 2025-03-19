@@ -21,6 +21,5 @@
       "@nestjs/*": ["node_modules/@nestjs/*"],
       "@libs/*": ["libs/*"]
     }
-
-  },
+  }
 }

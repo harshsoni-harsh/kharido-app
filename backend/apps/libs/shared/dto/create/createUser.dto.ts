@@ -12,8 +12,8 @@ export class CreateUserDto {
   gender?: string;
 
   // No need to include nested objects for simplicity
-  addresses?: any[];  // Just for demonstration (in a real app, use Address DTOs)
-  reviews?: any[];  // Same for reviews, orders, etc.
+  addresses?: any[]; // Just for demonstration (in a real app, use Address DTOs)
+  reviews?: any[]; // Same for reviews, orders, etc.
   orders?: any[];
   shoppingLists?: any[];
   cart?: any;
