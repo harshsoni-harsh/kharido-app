@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { KharidoApiGatewayModule } from './../src/kharido-api-gateway.module';
+import { apiGatewayModule } from '../src/apiGateway.module';
 
 describe('KharidoApiGatewayController (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [KharidoApiGatewayModule],
+      imports: [apiGatewayModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();

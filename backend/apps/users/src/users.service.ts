@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -81,7 +82,7 @@ export class UsersService {
 
   async getAllOrdersMeta(email: string) {
     try {
-      const user = await this.userModel.findOne({ email }).exec();
+      const user = await this.userModel.findOne({ email });
 
       if (!user) {
         throw new NotFoundException('User not found');

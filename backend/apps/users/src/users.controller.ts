@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, HttpException, Logger } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { MESSAGES } from '@nestjs/core/constants';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -16,8 +16,12 @@ export class UsersController {
 
   @MessagePattern('user-all-orders')
   async getUserAllOrderMeta(@Payload() email: string) {
-    console.log('HIHI');
-    console.log(email);
-    return await this.usersService.getAllOrdersMeta(email);
+    try {
+      const res = await this.usersService.getAllOrdersMeta(email);
+      return res;
+    } catch ({response}) {
+      Logger.log(response)
+      throw new HttpException(response.message, response.status);
+    }
   }
 }

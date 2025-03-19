@@ -13,6 +13,7 @@ export class UsersService {
   async getUserAllOrders(email: string) {
     return this.usersClient.send('user-all-orders', email); // Convert Observable to Promise
   }
+
   getHello() {
     return 'Hello gateway from users module';
   }

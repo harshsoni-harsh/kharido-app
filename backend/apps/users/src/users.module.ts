@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -17,25 +17,20 @@ import {
   Product,
   ProductSchema,
 } from 'apps/libs/shared/schemas/product.schema';
-import { CartSchema } from 'apps/libs/shared/schemas/cart.schema';
+import { Cart, CartSchema } from 'apps/libs/shared/schemas/cart.schema';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      'mongodb+srv://getmyidin11:Je9fLPCKct2gHPqY@kharido.2ruw6.mongodb.net/kharido',
-      {
-        onConnectionCreate() {
-          console.log('connecting');
-        },
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    MongooseModule.forRoot(process.env.DB_STRING!, {
+      onConnectionCreate() {
+        Logger.log('Mongodb connected successfully');
       },
-    ),
-    // MongooseModule.forRoot('mongodb://localhost:27017/kharido',{
-    //   onConnectionCreate(){
-    //     console.log("connecting");
-    //   },
-
-    // }),
-
+    }),
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Order.name, schema: OrderSchema },
@@ -43,7 +38,7 @@ import { CartSchema } from 'apps/libs/shared/schemas/cart.schema';
       { name: Payment.name, schema: PaymentSchema },
       { name: ShoppingList.name, schema: ShoppingListSchema },
       { name: Product.name, schema: ProductSchema },
-      // {name:'Cart', schema:CartSchema}
+      { name: Cart.name, schema: CartSchema },
     ]),
   ],
   controllers: [UsersController],
