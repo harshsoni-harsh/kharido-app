@@ -1,0 +1,42 @@
+db.User.insertMany([
+  {
+    name: "John Doe",
+    email: "john.doe@example.com",
+    gender: "Male",
+    addresses: [],  // Empty array for addresses
+    reviews: [],  // Empty array for reviews
+    orders: [],  // Empty array for orders
+    shoppingLists: [],  // Empty array for shopping lists
+    cart: null  // Null for cart reference
+  },
+  {
+    name: "Jane Smith",
+    email: "jane.smith@example.com",
+    gender: "Female",
+    addresses: [],  // Empty array for addresses
+    reviews: [],  // Empty array for reviews
+    orders: [],  // Empty array for orders
+    shoppingLists: [],  // Empty array for shopping lists
+    cart: null  // Null for cart reference
+  },
+  {
+    name: "Alice Brown",
+    email: "alice.brown@example.com",
+    gender: "Female",
+    addresses: [],  // Empty array for addresses
+    reviews: [],  // Empty array for reviews
+    orders: [],  // Empty array for orders
+    shoppingLists: [],  // Empty array for shopping lists
+    cart: null  // Null for cart reference
+  },
+  {
+    name: "Bob Johnson",
+    email: "bob.johnson@example.com",
+    gender: "Male",
+    addresses: [],  // Empty array for addresses
+    reviews: [],  // Empty array for reviews
+    orders: [],  // Empty array for orders
+    shoppingLists: [],  // Empty array for shopping lists
+    cart: null  // Null for cart reference
+  }
+])

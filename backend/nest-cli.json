@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/kharido-api-gateway/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/kharido-api-gateway/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/kharido-api-gateway",
+  "projects": {
+    "admin": {
+      "type": "application",
+      "root": "apps/admin",
+      "entryFile": "main",
+      "sourceRoot": "apps/admin/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/admin/tsconfig.app.json"
+      }
+    },
+    
+    "kharido-api-gateway": {
+      "type": "application",
+      "root": "apps/kharido-api-gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/kharido-api-gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/kharido-api-gateway/tsconfig.app.json"
+      }
+    },
+    "public": {
+      "type": "application",
+      "root": "apps/public",
+      "entryFile": "main",
+      "sourceRoot": "apps/public/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/public/tsconfig.app.json"
+      }
+    },
+    "users": {
+      "type": "application",
+      "root": "apps/users",
+      "entryFile": "main",
+      "sourceRoot": "apps/users/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/users/tsconfig.app.json"
+      }
+    }
+  }
+}
