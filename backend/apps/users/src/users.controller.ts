@@ -17,7 +17,7 @@ export class UsersController {
   @MessagePattern('user-all-orders')
   async getUserAllOrderMeta(@Payload() email: string) {
     try {
-      const res = await this.usersService.getAllOrdersMeta(email);
+      const res = await this.usersService.getCart(email);
       return res;
     } catch ({response}) {
       Logger.log(response)

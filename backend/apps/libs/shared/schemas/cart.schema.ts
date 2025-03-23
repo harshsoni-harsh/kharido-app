@@ -6,7 +6,7 @@ export type CartDocument = HydratedDocument<Cart>;
 
 @Schema()
 export class CartItem {
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }] })
+  @Prop({  type: mongoose.Types.ObjectId, ref: 'Product'  })
   product: mongoose.Types.ObjectId;
 
   @Prop()
@@ -24,7 +24,7 @@ export class Cart {
   @Prop({ required: true })
   email: string;
 
-  @Prop({ type: [{ type: [CartItem] }] })
+  @Prop({ type: [{ type: CartItem }] })
   items: CartItem[];
 }
 
