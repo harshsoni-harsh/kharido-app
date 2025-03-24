@@ -24,7 +24,7 @@ export class ShoppingList {
   @Prop()
   description: string;
 
-  @Prop({ type: [{ type: [Item] }] })
+  @Prop({ type: [Item] })
   items: Item[];
 }
 

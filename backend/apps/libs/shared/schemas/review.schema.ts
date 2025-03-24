@@ -13,7 +13,7 @@ export class Review {
   userEmail: string;
 
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+     type: mongoose.Schema.Types.ObjectId, ref: 'Product',
     required: true,
   })
   product: mongoose.Schema.Types.ObjectId;

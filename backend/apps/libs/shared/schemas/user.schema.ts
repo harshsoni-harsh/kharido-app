@@ -15,7 +15,7 @@ export class Address {
   street: string;
 
   @Prop()
-  landmark: string;
+  landmark?: string;
 
   @Prop({ required: true })
   pin: number;
@@ -55,7 +55,7 @@ export class User {
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'ShoppingList' }] })
   shoppingLists: mongoose.Types.ObjectId[];
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Cart' }] })
+  @Prop({type: mongoose.Types.ObjectId, ref: 'Cart' })
   cart: mongoose.Types.ObjectId;
 }
 

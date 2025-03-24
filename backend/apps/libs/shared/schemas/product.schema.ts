@@ -65,9 +65,7 @@ export class Product {
   })
   specification: { property: string; value: string }[];
 
-  @Prop({
-    type: [{ property: String, value: String }],
-  })
+ 
   @Prop({
     type: [{ property: String, value: String }],
   })

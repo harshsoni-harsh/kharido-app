@@ -17,7 +17,6 @@ export class UpdateReviewDTO {
   userEmail?: string;
 
   @IsString()
-  @IsOptional()
   product?: string;
 
   @IsString()
