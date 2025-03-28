@@ -33,10 +33,8 @@ export class Category {
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Review' }] })
   reviews: mongoose.Types.ObjectId[];
 
-  @Prop({
-    type: [{ property: String, value: String }],
-  })
-  specification: { property: string; value: string }[];
+  @Prop()
+  defaultTax:number;
 
   @Prop()
   updatedAt: Date;

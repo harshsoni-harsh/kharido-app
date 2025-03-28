@@ -21,9 +21,6 @@ export class Payment {
   status: string;
 
   @Prop()
-  description: string;
-
-  @Prop()
   paymentMode: string;
 
   @Prop()

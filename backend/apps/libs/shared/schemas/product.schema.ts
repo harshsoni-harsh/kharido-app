@@ -65,12 +65,6 @@ export class Product {
   })
   specification: { property: string; value: string }[];
 
- 
-  @Prop({
-    type: [{ property: String, value: String }],
-  })
-  variants: { property: string; value: string }[]; // for objects like tshirt, like sizes s,m l, xl
-
   @Prop()
   updatedAt: Date;
 }

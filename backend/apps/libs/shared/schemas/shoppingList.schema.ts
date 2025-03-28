@@ -4,7 +4,7 @@ import * as mongoose from 'mongoose';
 
 export type ShoppingListDocument = HydratedDocument<ShoppingList>;
 
-@Schema()
+@Schema({ _id: false })
 export class Item {
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }] })
   product: mongoose.Types.ObjectId;

@@ -52,6 +52,9 @@ export class User {
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Order' }] })
   orders: mongoose.Types.ObjectId[];
 
+  @Prop({ type: mongoose.Types.ObjectId, ref: 'ShoppingList'  })
+  wishList: mongoose.Types.ObjectId;
+
   @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'ShoppingList' }] })
   shoppingLists: mongoose.Types.ObjectId[];
 

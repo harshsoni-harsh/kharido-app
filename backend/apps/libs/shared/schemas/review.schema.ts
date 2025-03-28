@@ -9,8 +9,8 @@ export class Review {
   @Prop({ required: true })
   userName: string;
 
-  @Prop({ required: true })
-  userEmail: string;
+  // @Prop({ required: true })
+  // userEmail: string;
 
   @Prop({
      type: mongoose.Schema.Types.ObjectId, ref: 'Product',
@@ -45,10 +45,6 @@ export class Review {
   @Prop()
   lastUpdateAt: Date;
 
-  @Prop({
-    type: [{ property: String, value: String }],
-  })
-  specification: { property: string; value: string }[];
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);
