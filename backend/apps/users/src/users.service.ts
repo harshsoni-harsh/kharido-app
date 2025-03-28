@@ -13,8 +13,6 @@ import { Product } from 'apps/libs/shared/schemas/product.schema';
 import { ShoppingList } from 'apps/libs/shared/schemas/shoppingList.schema';
 import { Cart } from 'apps/libs/shared/schemas/cart.schema';
 import { console } from 'inspector';
-import { ifError } from 'assert';
-import { retry } from 'rxjs';
 import { AddressDTO } from 'apps/libs/shared/dto/common/address.dto';
 import { CreateReviewDTO } from 'apps/libs/shared/dto/create/createReview.dto';
 import { UpdateReviewDTO } from 'apps/libs/shared/dto/update/updateReview.dto';
@@ -23,11 +21,10 @@ import { EachMessageHandler } from '@nestjs/microservices/external/kafka.interfa
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly shoppingListModel: Model<ShoppingList>,
     @InjectModel('User') private readonly userModel: Model<User>,
     @InjectModel('Order') private readonly orderModel: Model<Order>,
     @InjectModel('Product') private readonly ProductModel: Model<Product>,
-    @InjectModel('ShoppingList')
+    @InjectModel('ShoppingList') private readonly shoppingListModel: Model<ShoppingList>,
     @InjectModel('Cart') private readonly cartModel: Model<Cart>,
     @InjectModel('Review') private readonly reviewModel: Model<Review>
   ) { }
