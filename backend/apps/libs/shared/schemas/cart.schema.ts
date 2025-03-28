@@ -24,7 +24,7 @@ export class Cart {
   @Prop({ required: true })
   email: string;
 
-  @Prop({ type: [{ type: CartItem }] })
+  @Prop({ type: [{  type: mongoose.Types.ObjectId, ref: 'CartItem'  }] })
   items: CartItem[];
 }
 
