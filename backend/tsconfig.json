@@ -18,8 +18,12 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@nestjs/*": ["node_modules/@nestjs/*"],
-      "@libs/*": ["libs/*"]
+      "@libs/*": [
+        "libs/*"
+      ],
+      "@nestjs/*": [
+        "node_modules/@nestjs/*"
+      ]
     }
   }
 }

@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ApiGatewayModule } from './apiGateway.module';
+import { ApiGatewayModule } from './api-gateway.module';
 import { Logger } from '@nestjs/common';
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist';
-import { Category } from 'apps/libs/shared/schemas/category.schema';
-import { Product } from 'apps/libs/shared/schemas/product.schema';
-import { Review } from 'apps/libs/shared/schemas/review.schema';
+import { Category } from '@libs/shared/schemas/category.schema';
+import { Product } from '@libs/shared/schemas/product.schema';
+import { Review } from '@libs/shared/schemas/review.schema';
 import { Model, Types } from 'mongoose';
 
 @Injectable()

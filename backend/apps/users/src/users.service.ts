@@ -6,17 +6,16 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Mongoose, Types } from 'mongoose';
-import { User } from './../../libs/shared/schemas/user.schema';
-import { CreateUserDto } from 'apps/libs/shared/dto/create/createUser.dto';
-import { Order } from 'apps/libs/shared/schemas/order.schema';
-import { Product } from 'apps/libs/shared/schemas/product.schema';
-import { ShoppingList } from 'apps/libs/shared/schemas/shoppingList.schema';
-import { Cart } from 'apps/libs/shared/schemas/cart.schema';
-import { console } from 'inspector';
-import { AddressDTO } from 'apps/libs/shared/dto/common/address.dto';
-import { CreateReviewDTO } from 'apps/libs/shared/dto/create/createReview.dto';
-import { UpdateReviewDTO } from 'apps/libs/shared/dto/update/updateReview.dto';
-import { Review } from 'apps/libs/shared/schemas/review.schema';
+import { User } from '../../../libs/shared/schemas/user.schema';
+import { CreateUserDto } from '@libs/shared/dto/create/createUser.dto';
+import { Order } from '@libs/shared/schemas/order.schema';
+import { Product } from '@libs/shared/schemas/product.schema';
+import { ShoppingList } from '@libs/shared/schemas/shoppingList.schema';
+import { Cart } from '@libs/shared/schemas/cart.schema';
+import { AddressDTO } from '@libs/shared/dto/common/address.dto';
+import { CreateReviewDTO } from '@libs/shared/dto/create/createReview.dto';
+import { UpdateReviewDTO } from '@libs/shared/dto/update/updateReview.dto';
+import { Review } from '@libs/shared/schemas/review.schema';
 import { EachMessageHandler } from '@nestjs/microservices/external/kafka.interface';
 @Injectable()
 export class UsersService {

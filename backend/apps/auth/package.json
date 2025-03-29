@@ -1,0 +1,14 @@
+{
+  "name": "auth",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "nest start --watch"
+  },
+  "dependencies": {
+    "@nestjs/jwt": "^11.0.0",
+    "google-auth-library": "^9.15.1",
+    "googleapis": "^148.0.0"
+  }
+}

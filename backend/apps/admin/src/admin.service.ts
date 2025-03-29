@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist';
-import { Cart } from 'apps/libs/shared/schemas/cart.schema';
-import { Order } from 'apps/libs/shared/schemas/order.schema';
-import { Product } from 'apps/libs/shared/schemas/product.schema';
-import { Review } from 'apps/libs/shared/schemas/review.schema';
-import { ShoppingList } from 'apps/libs/shared/schemas/shoppingList.schema';
-import { User } from 'apps/libs/shared/schemas/user.schema';
+import { Cart } from '@libs/shared/schemas/cart.schema';
+import { Order } from '@libs/shared/schemas/order.schema';
+import { Product } from '@libs/shared/schemas/product.schema';
+import { Review } from '@libs/shared/schemas/review.schema';
+import { ShoppingList } from '@libs/shared/schemas/shoppingList.schema';
+import { User } from '@libs/shared/schemas/user.schema';
 import { Model } from 'mongoose';
 
 @Injectable()

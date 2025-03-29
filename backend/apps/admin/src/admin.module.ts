@@ -3,8 +3,8 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose/dist';
-import { Product, ProductSchema } from 'apps/libs/shared/schemas/product.schema';
-import { Review, ReviewSchema } from 'apps/libs/shared/schemas/review.schema';
+import { Product, ProductSchema } from '@libs/shared/schemas/product.schema';
+import { Review, ReviewSchema } from '@libs/shared/schemas/review.schema';
 
 @Module({
   imports: [

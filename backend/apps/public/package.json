@@ -1,0 +1,12 @@
+{
+    "name": "public",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+      "start": "nest start",
+      "start:dev": "nest start --watch"
+    },
+    "dependencies": {
+    }
+  }
+  

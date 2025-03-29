@@ -2,8 +2,8 @@ import { Controller, Get, HttpException, Logger } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { MESSAGES } from '@nestjs/core/constants';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { User } from 'apps/libs/shared/schemas/user.schema';
-import { CreateUserDto } from 'apps/libs/shared/dto/create/createUser.dto';
+import { User } from '@libs/shared/schemas/user.schema';
+import { CreateUserDto } from '@libs/shared/dto/create/createUser.dto';
 
 @Controller()
 export class UsersController {
