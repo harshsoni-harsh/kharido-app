@@ -19,7 +19,6 @@
         "tsConfigPath": "apps/admin/tsconfig.app.json"
       }
     },
-
     "apiGateway": {
       "type": "application",
       "root": "apps/apiGateway",
@@ -27,6 +26,15 @@
       "sourceRoot": "apps/apiGateway/src",
       "compilerOptions": {
         "tsConfigPath": "apps/apiGateway/tsconfig.app.json"
+      }
+    },
+    "auth": {
+      "type": "application",
+      "root": "apps/auth",
+      "entryFile": "main",
+      "sourceRoot": "apps/auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/auth/tsconfig.app.json"
       }
     },
     "public": {
