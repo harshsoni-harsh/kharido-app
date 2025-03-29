@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist';
 import { Category } from '@libs/shared/schemas/category.schema';
 import { Product } from '@libs/shared/schemas/product.schema';
@@ -14,8 +14,12 @@ export class PublicService {
   ) { }
 
   async getProduct(productId: string) {
-    // 1. Validate if productId is a valid ObjectId
-    if (!Types.ObjectId.isValid(productId)) {
+    Logger.log(productId)
+
+    const cleanId = productId.toString().trim();
+  
+    if (!/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+      Logger.error(`Invalid ID format received: ${cleanId}`);
       return {
         success: false,
         statusCode: 400,
@@ -23,10 +27,10 @@ export class PublicService {
         data: null,
       };
     }
-
     try {
-      // 2. Convert string ID to ObjectId and find product
+     
       const objectId = new Types.ObjectId(productId);
+
       const product = await this.productModel.findById(objectId).lean().exec();
 
       if (!product) {
@@ -38,7 +42,7 @@ export class PublicService {
         };
       }
 
-      // 3. Find all reviews for this product (using aggregation for better performance)
+      
       const reviews = await this.reviewModel.aggregate([
         { $match: { product: objectId } },
         { $project: { __v: 0 } } // Exclude version key
@@ -58,7 +62,7 @@ export class PublicService {
       };
 
     } catch (error) {
-      console.error(`ProductService.getProduct error: ${error.message}`, error.stack);
+      console.error(`PublicService.getProduct error: ${error.message}`, error.stack);
       return {
         success: false,
         statusCode: 500,
@@ -116,7 +120,7 @@ export class PublicService {
       };
   
     } catch (error) {
-      console.error(`ProductService.getProductsRange error: ${error.message}`, error.stack);
+      console.error(`PublicService.getProductsRange error: ${error.message}`, error.stack);
       
       return {
         success: false,
@@ -211,7 +215,7 @@ export class PublicService {
       };
   
     } catch (error) {
-      console.error(`ProductService.getCategoryProducts error: ${error.message}`, error.stack);
+      console.error(`PublicService.getCategoryProducts error: ${error.message}`, error.stack);
       
       return {
         success: false,
@@ -300,7 +304,7 @@ export class PublicService {
       };
   
     } catch (error) {
-      console.error(`ProductService.searchByUserInput error: ${error.message}`, error.stack);
+      console.error(`PublicService.searchByUserInput error: ${error.message}`, error.stack);
       
       return {
         success: false,
@@ -323,7 +327,6 @@ export class PublicService {
     limit: number = 10,
     page: number = 1
   ) {
-    // 1. Validate input
     if (!query || typeof query !== 'string') {
       return {
         success: false,
@@ -334,67 +337,30 @@ export class PublicService {
     }
   
     try {
-   
-      const matchStage: any = {
-        $match: {
-          $text: {
-            $search: query,
-            $caseSensitive: false,
-            $diacriticSensitive: false,
-            $fuzzy: {
-              maxEdits: 2,
-              prefixLength: 3
-            }
-          }
-        }
+      const filter = {
+        $or: [
+          { name: { $regex: query, $options: 'i' } }, 
+          { description: { $regex: query, $options: 'i' } },
+          { searchTags: { $elemMatch: { $regex: query, $options: 'i' } } }
+        ]
       };
   
-
-      const sortStage: any[] = [];
-      if (sortOptions) {
-        sortStage.push({
-          $sort: {
-            [sortOptions.field]: sortOptions.order === 'asc' ? 1 : -1
-          }
-        });
-      } else {
-   
-        sortStage.push({
-          $sort: { score: { $meta: 'textScore' } }
-        });
-      }
+     
+      const sort = sortOptions 
+        ? { [sortOptions.field]: sortOptions.order === 'asc' ? 1 : -1 }
+        : {};
   
- 
-      const skip = (page - 1) * limit;
-      const paginationStages = [
-        { $skip: skip },
-        { $limit: limit }
-      ];
-  
-      const pipeline = [
-        matchStage,
-        {
-          $addFields: {
-            score: { $meta: 'textScore' }
-          }
-        },
-        ...sortStage,
-        ...paginationStages,
-        {
-          $project: {
-            _id: 1,
-            name: 1,
-            price: 1,
-            images: 1,
-            rating: 1,
-            score: 1
-          }
-        }
-      ];
-
+      
       const [results, totalCount] = await Promise.all([
-        this.productModel.aggregate(pipeline).exec(),
-        this.productModel.countDocuments(matchStage.$match)
+        this.productModel
+          .find(filter)
+          .sort(sort as any)
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .select('_id name price brand imageLinks rating') 
+          .exec(),
+        
+        this.productModel.countDocuments(filter)
       ]);
   
       return {
@@ -403,14 +369,14 @@ export class PublicService {
         message: 'Search completed successfully',
         data: {
           query,
-          results: results || [],
+          results,
           pagination: {
             total: totalCount,
             page,
             pages: Math.ceil(totalCount / limit),
             limit
           },
-          sort: sortOptions || { field: 'relevance', order: 'desc' }
+          sort: sortOptions || { field: 'none', order: 'none' }
         }
       };
   

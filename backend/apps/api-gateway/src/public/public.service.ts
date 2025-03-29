@@ -11,7 +11,7 @@ export class PublicService {
     
       async getProduct(productId: string) {
         return firstValueFrom(
-          this.client.send('public_getProduct', { productId })
+          this.client.send('public_getProduct',  productId )
         );
       }
     
@@ -23,7 +23,7 @@ export class PublicService {
     
       async getCategoryProducts(categoryId: string) {
         return firstValueFrom(
-          this.client.send('public_getCategoryProducts', { categoryId })
+          this.client.send('public_getCategoryProducts', categoryId )
         );
       }
     

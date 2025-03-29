@@ -13,16 +13,13 @@ export class AdminService {
     constructor(
       @InjectModel('User') private readonly userModel: Model<User>,
       @InjectModel('Order') private readonly orderModel: Model<Order>,
-      @InjectModel('Product') private readonly ProductModel: Model<Product>,
-      @InjectModel('ShoppingList')
-      private readonly shoppingListModel: Model<ShoppingList>,
+      @InjectModel('Product') private readonly productModel: Model<Product>,
+      @InjectModel('ShoppingList') private readonly shoppingListModel: Model<ShoppingList>,
       @InjectModel('Cart') private readonly cartModel: Model<Cart>,
       @InjectModel('Review') private readonly reviewModel: Model<Review>
     ) { }
     
-    getHello(): string {
-      return 'Hello World!';
-    }
+    
 
 
 
