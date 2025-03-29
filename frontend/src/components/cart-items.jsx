@@ -60,7 +60,7 @@ export default function CartItems(){
     <CardContent className="pt-6">
       <div className="space-y-5">
         {cart.map((item , index) => (
-          <div key={item.i0 ?? index}>
+          <div key={item.id ?? index}>
             <div className="flex gap-4">
               <div className="flex-shrink-0">
                 <Image
@@ -88,7 +88,7 @@ export default function CartItems(){
                     variant="outline"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => addToCart(item)}
+                    onClick={() => addToCart(item ,1)}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>

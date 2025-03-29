@@ -141,10 +141,6 @@ export default function order() {
           <p className="text-muted-foreground">Manage customer orders</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline">
-            <Filter className="mr-2 h-4 w-4" />
-            Filter
-          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -243,7 +239,7 @@ export default function order() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleViewOrder(order)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleViewOrder(order)} >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <DropdownMenu>
@@ -252,7 +248,7 @@ export default function order() {
                                 <ChevronDown className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end" className="bg-white">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem>Update Status</DropdownMenuItem>
@@ -331,7 +327,7 @@ export default function order() {
       </Card>
 
       <Dialog open={isViewOrderOpen} onOpenChange={setIsViewOrderOpen}>
-        <DialogContent className="sm:max-w-[700px]">
+        <DialogContent className="sm:max-w-[700px] bg-white ">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
             <DialogDescription>{selectedOrder && `Order ID: ${selectedOrder.id}`}</DialogDescription>

@@ -331,7 +331,7 @@ export default function product() {
             </DialogContent>
           </Dialog>
 
-          <DropdownMenu>
+          <DropdownMenu >
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 <Download className="mr-2 h-4 w-4"/>
@@ -339,7 +339,7 @@ export default function product() {
                 <ChevronDown className="ml-2 h-4 w-4"/>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className = "bg-white">
               <DropdownMenuItem>Export as CSV</DropdownMenuItem>
               <DropdownMenuItem>Export as Excel</DropdownMenuItem>
               <DropdownMenuItem>Export as PDF</DropdownMenuItem>

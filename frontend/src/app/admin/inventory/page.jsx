@@ -220,10 +220,6 @@ export default function InventoryPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button variant="outline">
-            <Filter className="mr-2 h-4 w-4" />
-            Filter
-          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">

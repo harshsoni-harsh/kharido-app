@@ -106,11 +106,11 @@ export default function ReportsPage() {
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-[240px] justify-start text-left font-normal bg-white ">
-                <Calendar className="mr-2 h-4 w-4 " />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                <Calendar className="mr-2 h-4 w-4 "/>
+                {date ? format(date, "PPP") : <span>Pick a date</span>} 
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
+            <PopoverContent className="w-auto p-0 bg-white" align="end">
               <CalendarComponent mode="single" selected={date} onSelect={setDate} initialFocus />
             </PopoverContent>
           </Popover>
@@ -118,7 +118,7 @@ export default function ReportsPage() {
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               <SelectItem value="today">Today</SelectItem>
               <SelectItem value="yesterday">Yesterday</SelectItem>
               <SelectItem value="last7days">Last 7 days</SelectItem>
