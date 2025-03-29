@@ -1,0 +1,42 @@
+services:
+  admin:
+    env_file:
+      - .env.prod
+    build:
+      dockerfile: apps/admin/Dockerfile
+    networks:
+      - kharido-app
+  api-gateway:
+    env_file:
+      - .env.prod
+    ports:
+      - 3000:3000
+    build: 
+      dockerfile: apps/api-gateway/Dockerfile
+    networks:
+      - kharido-app
+  auth:
+    env_file:
+      - .env.prod
+    build:
+      dockerfile: apps/auth/Dockerfile
+    networks:
+      - kharido-app
+  public:
+    env_file:
+      - .env.prod
+    build:
+      dockerfile: apps/public/Dockerfile
+    networks:
+      - kharido-app
+  users:
+    env_file:
+      - .env.prod
+    build:
+      dockerfile: apps/users/Dockerfile
+    networks:
+      - kharido-app
+
+networks:
+  kharido-app:
+    driver: bridge
