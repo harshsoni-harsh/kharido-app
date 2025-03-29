@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose/dist';
 import { Product, ProductSchema } from 'apps/libs/shared/schemas/product.schema';
 import { Review, ReviewSchema } from 'apps/libs/shared/schemas/review.schema';
+import { Category, CategorySchema } from 'apps/libs/shared/schemas/category.schema';
 
 @Module({
   imports: [
@@ -18,9 +19,10 @@ import { Review, ReviewSchema } from 'apps/libs/shared/schemas/review.schema';
           },
         }),
         MongooseModule.forFeature([
-     
+          
           { name: Review.name, schema: ReviewSchema },
           { name: Product.name, schema: ProductSchema },
+          { name: Category.name, schema: CategorySchema },
         
         ]),
   ],

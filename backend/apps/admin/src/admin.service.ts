@@ -19,9 +19,11 @@ export class AdminService {
       @InjectModel('Cart') private readonly cartModel: Model<Cart>,
       @InjectModel('Review') private readonly reviewModel: Model<Review>
     ) { }
-  getHello(): string {
-    return 'Hello World!';
-  }
+    
+    getHello(): string {
+      return 'Hello World!';
+    }
+
 
 
   
