@@ -1,25 +1,24 @@
-import { Controller, UseGuards } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { GoogleAuthGuard } from './google-auth.guard';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(GoogleAuthGuard)
-  @MessagePattern('google')
+  @MessagePattern('google-auth')
   googleLogin() {
-    return { message: 'Redirecting to Google...' };
+    return { url: this.authService.googleAuthUrl() };
   }
 
-  @UseGuards(GoogleAuthGuard)
   @MessagePattern('google-auth-callback')
-  async googleAuthRedirect(@Payload() user) {
-    const { accessToken, refreshToken } =
-      await this.authService.generateTokens(user);
-
-    return { accessToken, refreshToken };
+  async googleAuthRedirect(@Payload() data: { code: string }) {
+    try {
+      return await this.authService.handleGoogleCallback(data.code);
+    } catch (err) {
+      Logger.error(err.response.text)
+      throw new RpcException("Bad Request")
+    }
   }
 
   @MessagePattern('logout')
