@@ -12,6 +12,7 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import useCartStore from "../store/CartStore.js";
 import clsx from "clsx";
+import { useRouter } from "next/navigation"
 
 function ProductCard({ id, image, name, rating, price }) {
   const addToCart = useCartStore((state) => state.addToCart);
@@ -35,10 +36,19 @@ function ProductCard({ id, image, name, rating, price }) {
     setQuantity(useCartStore.getState().cart.find((p) => p.id === id)?.quantity ?? 0);
   }, [])
 
+
+  const router = useRouter()
+
+  const handleCardClick = () => {
+    router.push(`/aboutproduct?id=${id}&image=${image}&name=${name}&rating=${rating}&price=${price}`);
+  };
+
+
+
   return (
     <Card
       className="pb-4 overflow-hidden transition-transform duration-300 ease-in-out 
-                 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl"
+                 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl" onClick = {handleCardClick}
     >
       <CardHeader className="p-0 pt-0">
         <div className="relative h-50 w-full overflow-hidden">
