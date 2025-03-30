@@ -70,14 +70,14 @@ const useCartStore = create((set) => ({
           });
 
         // Optimistic update before API response
-        return {
-          cart: state.cart.map((item) =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          ),
-          totalPrice: state.totalPrice + product.price,
-        };
+        // return {
+        //   cart: state.cart.map((item) =>
+        //     item.id === product.id
+        //       ? { ...item, quantity: item.quantity + 1 }
+        //       : item
+        //   ),
+        //   totalPrice: state.totalPrice + product.price,
+        // };
       } else {
         // If it's a new product, add it locally and send an API request
         axios
@@ -87,7 +87,7 @@ const useCartStore = create((set) => ({
             action: "add",
           })
           .then((response) => {
-            console.log(response.data); // Log response data
+            console.log("RESPONSE AFTER ADD: ",response.data); // Log response data
 
             set(() => ({
               cart: response.data.data.items.map((item) => ({
@@ -166,6 +166,5 @@ const useCartStore = create((set) => ({
       }
     }),
 }));
-useCartStore.getState().fetchCart();
 
 export default useCartStore;

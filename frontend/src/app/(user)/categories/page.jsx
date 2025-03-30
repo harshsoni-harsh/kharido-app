@@ -97,7 +97,7 @@ function page() {
       <div className="">
         <div className="flex flex-col gap-6">
           {categoriesList.map((category, index) => (
-            <asyncdiv className="flex flex-col rounded-2xl px-2 py-2 shadow-2xl">
+            <div className="flex flex-col rounded-2xl px-2 py-2 shadow-2xl">
               <div className="flex  flex-row justify-between">
                 <div className="text-2xl mb-4 font-bold mt-4">
                   {category.name}
@@ -118,7 +118,7 @@ function page() {
                   />
                 ))}
               </div>
-            </asyncdiv>
+            </div>
           ))}
           <div className="flex flex-col rounded-2xl px-2 py-2 shadow-2xl">
             <div className="flex  flex-row justify-between">

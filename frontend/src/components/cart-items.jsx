@@ -10,7 +10,7 @@ import useCartStore from "@/store/CartStore";
 
 export default function CartItems() {
   const { cart, addToCart, removeFromCart, fetchCart } = useCartStore();
-  console.log("cart items", cart);
+  // console.log("cart items", cart);
 
   // useEffect(() => {
   //   fetchCart();
