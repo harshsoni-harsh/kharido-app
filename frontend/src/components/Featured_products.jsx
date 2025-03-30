@@ -1,9 +1,9 @@
 'use client'
-import React , {useState} from "react";
+import React , {useEffect, useState} from "react";
 import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import useCartStore from "@/store/CartStore";
+import axios from "axios";
 
 function Featured_products() {
   const product = [
@@ -47,6 +47,26 @@ function Featured_products() {
   const router = useRouter();
 
 
+  const [productList , setProductList]  = useState([])
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await axios.post("http://localhost:3000/public/get-products-range",{
+          startIndex:0,
+          endIndex:5
+      });
+        setProductList(res.data.data.products);
+        console.log(res.data.data.products); 
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    }
+
+    fetchProducts()
+  }, [])
+  
+
 
   return (
     <div className="flex flex-col p-4 mt-4">
@@ -57,10 +77,14 @@ function Featured_products() {
         </div>
       </div>
       <div className=" grid sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-8xl items-center">
-        {product.map((category) => (
+        {productList.map((product) => (
           <ProductCard
-            key={category.id}
-            {...category}
+            key={product._id}
+            id={product._id}
+            name= {product.name}
+            brand={product.brand}
+            rating ={product.rating}
+            price ={product.price}
           />
         ))}
       </div>

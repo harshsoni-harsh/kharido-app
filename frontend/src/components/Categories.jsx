@@ -40,22 +40,22 @@ const categories = [
 
 const CategoriesPage = () => {
 
-  const [productList, setProductList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
 
   
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchCategories() {
       try {
-        const res = await axios.get("https://dummyjson.com/products");
-        setProductList(res.data.products);
-        console.log(res.data.products); // Logging the fetched data instead
+        const res = await axios.post("http://localhost:3000/public/get-categories",{});
+        setCategoriesList(res.data.data.categories);
+        console.log(res.data.data.categories); 
       } catch (error) {
         console.error("Error fetching products:", error);
       }
     }
 
-    fetchProducts();
+    fetchCategories();
   }, []);
 
   return (
@@ -64,12 +64,12 @@ const CategoriesPage = () => {
         <div className="text-3xl mb-4 font-bold ">Shop by Category</div> 
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full max-w-8xl items-center ">
-          {categories.map((category, index) => (
+          {categoriesList.map((category, index) => (
             <CategoryCard
               key={index}
-              imageUrl={category.imageUrl}
+              imageUrl={""}
               category={category.name}
-              link={category.link}
+              link={""}
             />
           ))}
         </div>

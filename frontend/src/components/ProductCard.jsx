@@ -14,7 +14,7 @@ import useCartStore from "../store/CartStore.js";
 import clsx from "clsx";
 import { useRouter } from "next/navigation"
 
-function ProductCard({ id, image, name, rating, price }) {
+function ProductCard({ id, imageLinks, name, rating, price , brand }) {
   const addToCart = useCartStore((state) => state.addToCart);
   
   const [quantity, setQuantity] = useState(null);
@@ -25,7 +25,7 @@ function ProductCard({ id, image, name, rating, price }) {
     const product = {
       id,
       name,
-      image,
+      imageLinks,
       rating,
       price,
       quantity: quantity ?? 1,
@@ -52,13 +52,13 @@ function ProductCard({ id, image, name, rating, price }) {
                  hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
       <CardHeader className="p-0 pt-0 " >
         <div className="relative h-50 w-full overflow-hidden" onClick = {handleCardClick}>
-          <Image
+          {/* <Image
             src={image}
             alt={name}
             fill
             className="object-cover transition-transform pt-0"
             priority
-          />
+          /> */}
         </div>
       </CardHeader>
       <CardContent className="p-4 pb-0 pt-0">
