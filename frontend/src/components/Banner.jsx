@@ -17,12 +17,12 @@ function Banner() {
             </p>
           </div>
           <button className="h-10  w-22 rounded-xl bg-green-500 hover:bg-green-300 duration-300 cursor-pointer mt-6 text-black">
-            Shope now
+            Shop now
           </button>
         </div>
         <div className="order-1 w-full md:w-1/2 mt-32">
           <img
-            src={'/images/grocery.jpg'}            
+            src={"/images/grocery.jpg"}
             // image
             className="md:w-[550px] md:h-[460px] md:ml-12 w-6"
             alt="front image"

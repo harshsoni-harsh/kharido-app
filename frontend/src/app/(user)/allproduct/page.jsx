@@ -1,52 +1,51 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
-// import { useRouter } from "next/navigation";
 
 function page() {
-  // const router = useRouter()
-  const product = [
-    {
-      name: "Banana",
-      price: 35,
-      rating: 4,
-      image: "/images/Fruits_vegetable.jpg",
-      category1: "Fruits and vegetables",
-      quantity: 12,
-    },
-    {
-      name: "Apple",
-      price: 95,
-      rating: 4,
-      image: "/images/Fruits_vegetable.jpg",
-      category1: "Fruits and vegetables",
-      quantity: 6,
-    },
-    {
-      name: "Avacodo",
-      price: 250,
-      rating: 4.5,
-      image: "/images/Fruits_vegetable.jpg",
-      category1: "Fruits and vegetables",
-      quantity: 3,
-    },
-    {
-      name: "Graphs",
-      price: 80,
-      rating: 3.5,
-      image: "/images/Fruits_vegetable.jpg",
-      category1: "Fruits and vegetables",
-      quantity: 1,
-    },
-    {
-      name: "Turkish Apple",
-      price: 420,
-      rating: 4,
-      image: "/images/Fruits_vegetable.jpg",
-      category1: "Fruits and vegetables",
-      quantity: 4,
-    },
-  ];
+  // const product = [
+  //   {
+  //     name: "Banana",
+  //     price: 35,
+  //     rating: 4,
+  //     image: "/images/Fruits_vegetable.jpg",
+  //     category1: "Fruits and vegetables",
+  //     quantity: 12,
+  //   },
+  //   {
+  //     name: "Apple",
+  //     price: 95,
+  //     rating: 4,
+  //     image: "/images/Fruits_vegetable.jpg",
+  //     category1: "Fruits and vegetables",
+  //     quantity: 6,
+  //   },
+  //   {
+  //     name: "Avacodo",
+  //     price: 250,
+  //     rating: 4.5,
+  //     image: "/images/Fruits_vegetable.jpg",
+  //     category1: "Fruits and vegetables",
+  //     quantity: 3,
+  //   },
+  //   {
+  //     name: "Graphs",
+  //     price: 80,
+  //     rating: 3.5,
+  //     image: "/images/Fruits_vegetable.jpg",
+  //     category1: "Fruits and vegetables",
+  //     quantity: 1,
+  //   },
+  //   {
+  //     name: "Turkish Apple",
+  //     price: 420,
+  //     rating: 4,
+  //     image: "/images/Fruits_vegetable.jpg",
+  //     category1: "Fruits and vegetables",
+  //     quantity: 4,
+  //   },
+  // ];
+  
   return (
     <div className="lg:mx-16 md:mx-8 sm:mx-4  mt-20 mb-8">
       <div className="">

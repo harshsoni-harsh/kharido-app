@@ -3,39 +3,40 @@ import React , {useState} from "react";
 import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import useCartStore from "@/store/CartStore";
 
 function Featured_products() {
   const product = [
     {
-      id: 1,
+      id: "67d833695eb9cc426f3cd9b6",
       name: "Banana",
       price: 35,
       rating: 4,
       image: "/images/Backery_biscuit.jpg",
     },
     {
-      id: 2,
+      id: "67d833695eb9cc426f3cd9ba",
       name: "Coca Cola",
       price: 95,
       rating: 1,
       image: "/images/Backery_biscuit.jpg",
     },
     {
-      id:3,
+      id:"67d833695eb9cc426f3cd9bb",
       name: "Lays",
       price: 50,
       rating: 3,
       image: "/images/Backery_biscuit.jpg",
     },
     {
-      id:4,
+      id:"67d833695eb9cc426f3cd9b7",
       name: "Apple",
       price: 140,
       rating: 6,
       image: "/images/Backery_biscuit.jpg",
     },
     {
-      id:5,
+      id:"67d833695eb9cc426f3cd9b5",
       name: "Burbone",
       price: 70,
       rating: 4,
@@ -44,6 +45,8 @@ function Featured_products() {
   ];
 
   const router = useRouter();
+
+
 
   return (
     <div className="flex flex-col p-4 mt-4">
