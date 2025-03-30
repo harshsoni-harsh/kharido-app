@@ -21,7 +21,10 @@ export default function CartSummary() {
   const [discount, setDiscount] = useState(0);
   const [isPromoApplied, setIsPromoApplied] = useState(false);
 
-  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const subtotal = cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
   const shipping = cart.length === 0 ? 0 : subtotal > 50 ? 0 : 5.99;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax - discount;
@@ -93,7 +96,10 @@ export default function CartSummary() {
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full bg-green-500 mb-6 hover:bg-green-700" size="lg">
+        <Button
+          className="w-full bg-green-500 mb-6 hover:bg-green-700"
+          size="lg"
+        >
           Proceed to Checkout
         </Button>
       </CardFooter>

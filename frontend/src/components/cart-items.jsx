@@ -12,9 +12,9 @@ export default function CartItems() {
   const { cart, addToCart, removeFromCart, fetchCart } = useCartStore();
   // console.log("cart items", cart);
 
-  // useEffect(() => {
-  //   fetchCart();
-  // }, [])
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   if (cart.length == 0) {
     return (
@@ -70,7 +70,7 @@ export default function CartItems() {
                       variant="outline"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => addToCart(item, 1)}
+                      onClick={() => addToCart(item)}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
