@@ -52,7 +52,7 @@ function Featured_products() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await axios.post("http://localhost:3000/public/get-products-range",{
+        const res = await axios.post(`${process.env.BACKEND_URI}/public/get-products-range`,{
           startIndex:0,
           endIndex:5
       });

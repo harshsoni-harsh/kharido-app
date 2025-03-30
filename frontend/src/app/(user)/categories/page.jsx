@@ -53,7 +53,7 @@ function page() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await axios.post("http://localhost:3000/public/get-categories", {});
+        const res = await axios.post(`${process.env.BACKEND_URI}/public/get-categories`, {});
         const categories = res.data.data.categories;
         // console.log("ss",categories);
 
@@ -76,7 +76,7 @@ function page() {
 
     async function fetchProducts(categoryId) {
       try {
-        const res = await axios.post("http://localhost:3000/public/get-category", {
+        const res = await axios.post(`/public/get-category", {
           categoryId:categoryId
         });
 
