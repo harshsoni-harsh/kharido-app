@@ -19,8 +19,9 @@ function ProductCard({ id, image, name, rating, price }) {
   
   const [quantity, setQuantity] = useState(null);
   
-  const handleAddtoCart = () => {
+  const handleAddtoCart = (event) => {
     // debugger;
+    event.stopPropagation();
     const product = {
       id,
       name,
@@ -48,10 +49,9 @@ function ProductCard({ id, image, name, rating, price }) {
   return (
     <Card
       className="pb-4 overflow-hidden transition-transform duration-300 ease-in-out 
-                 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl" onClick = {handleCardClick}
-    >
-      <CardHeader className="p-0 pt-0">
-        <div className="relative h-50 w-full overflow-hidden">
+                 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
+      <CardHeader className="p-0 pt-0 " >
+        <div className="relative h-50 w-full overflow-hidden" onClick = {handleCardClick}>
           <Image
             src={image}
             alt={name}
