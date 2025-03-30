@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import axios from "axios";
-function page() {
+
+export default function Page() {
   const product = [
     {
       name: "Banana",
@@ -56,6 +57,7 @@ function page() {
           {}
         );
         const categories = res.data.data.categories;
+        // console.log("ss",categories);
 
         // Fetch products for each category
         const populatedCategories = await Promise.all(
@@ -88,6 +90,9 @@ function page() {
         return []; // Return an empty array in case of error
       }
     }
+
+    fetchCategories();
+    // console.log(categoriesList)
   }, []);
 
   const [productList, setProductList] = useState([]);
@@ -191,5 +196,3 @@ function page() {
     </div>
   );
 }
-
-export default page;

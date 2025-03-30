@@ -7,9 +7,12 @@ const useCartStore = create((set) => ({
 
   fetchCart: async () => {
     try {
-      const response = await axios.post(`${process.env.BACKEND_URI}/users/get-cart`, {
-        email: "john.doe@example.com",
-      });
+      const response = await axios.post(
+        `/api/users/get-cart`,
+        {
+          email: "john.doe@example.com",
+        }
+      );
 
       const cartItems = response.data.data.items.map((item) => ({
         id: item.product._id,
@@ -21,7 +24,10 @@ const useCartStore = create((set) => ({
 
       set({
         cart: cartItems,
-        totalPrice: cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
+        totalPrice: cartItems.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        ),
       });
 
       console.log("Cart fetched successfully:", cartItems);
@@ -37,7 +43,7 @@ const useCartStore = create((set) => ({
       if (existingProduct) {
         // If the product exists, update it on the server
         axios
-          .post(`${process.env.BACKEND_URI}/users/update-cart`, {
+          .post(`/api/users/update-cart`, {
             email: "john.doe@example.com",
             productId: existingProduct.id,
             action: "increment",
@@ -75,7 +81,7 @@ const useCartStore = create((set) => ({
       } else {
         // If it's a new product, add it locally and send an API request
         axios
-          .post(`${process.env.BACKEND_URI}/users/get-cart`, {
+          .post(`/api/users/get-cart`, {
             email: "john.doe@example.com",
             productId: product.id,
             action: "add",
@@ -109,54 +115,56 @@ const useCartStore = create((set) => ({
       }
     }),
 
- removeFromCart: (productId) =>
-  set((state) => {
-    const product = state.cart.find((item) => item.id === productId);
-    
-    if (!product) return state; // If product not found, return state
+  removeFromCart: (productId) =>
+    set((state) => {
+      const product = state.cart.find((item) => item.id === productId);
 
-    axios
-      .post(`${process.env.BACKEND_URI}/users/update-cart`, {
-        email: "john.doe@example.com",
-        productId: productId,
-        action: product.quantity > 1 ? "decrement" : "remove",
-      })
-      .then((response) => {
-        console.log(response.data); // Log response data
+      if (!product) return state; // If product not found, return state
 
-        set(() => ({
-          cart: response.data.data.items.map((item) => ({
-            id: item.product._id,
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-            image: item.product.imageLinks?.[0] || "/placeholder.svg",
-          })),
-          totalPrice: response.data.data.items.reduce(
-            (total, item) => total + item.product.price * item.quantity,
-            0
+      axios
+        .post(`/api/users/update-cart`, {
+          email: "john.doe@example.com",
+          productId: productId,
+          action: product.quantity > 1 ? "decrement" : "remove",
+        })
+        .then((response) => {
+          console.log(response.data); // Log response data
+
+          set(() => ({
+            cart: response.data.data.items.map((item) => ({
+              id: item.product._id,
+              name: item.product.name,
+              price: item.product.price,
+              quantity: item.quantity,
+              image: item.product.imageLinks?.[0] || "/placeholder.svg",
+            })),
+            totalPrice: response.data.data.items.reduce(
+              (total, item) => total + item.product.price * item.quantity,
+              0
+            ),
+          }));
+        })
+        .catch((error) => {
+          console.error("Error removing cart item:", error);
+        });
+
+      // Optimistic update before API response
+      if (product.quantity > 1) {
+        return {
+          cart: state.cart.map((item) =>
+            item.id === productId
+              ? { ...item, quantity: item.quantity - 1 }
+              : item
           ),
-        }));
-      })
-      .catch((error) => {
-        console.error("Error removing cart item:", error);
-      });
-
-    // Optimistic update before API response
-    if (product.quantity > 1) {
-      return {
-        cart: state.cart.map((item) =>
-          item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
-        ),
-        totalPrice: state.totalPrice - product.price,
-      };
-    } else {
-      return {
-        cart: state.cart.filter((item) => item.id !== productId), // Remove product completely
-        totalPrice: state.totalPrice - product.price,
-      };
-    }
-  }),
+          totalPrice: state.totalPrice - product.price,
+        };
+      } else {
+        return {
+          cart: state.cart.filter((item) => item.id !== productId), // Remove product completely
+          totalPrice: state.totalPrice - product.price,
+        };
+      }
+    }),
 }));
 useCartStore.getState().fetchCart();
 

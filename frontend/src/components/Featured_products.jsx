@@ -52,7 +52,7 @@ function Featured_products() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await axios.post(`${process.env.BACKEND_URI}/public/get-products-range`,{
+        const res = await axios.post(`/api/public/get-products-range`,{
           startIndex:0,
           endIndex:5
       });
@@ -73,7 +73,7 @@ function Featured_products() {
       <div className="flex  flex-row justify-between">
         <div className="text-3xl mb-4 font-bold">Featured Products</div>
         <div className=" m-4 text-semibold bg-green-500 rounded-2xl hover:bg-green-700">
-          <Button className='w-full' onClick={() => router.push("/allproduct")}>See all →</Button>
+          <Button className='w-full' onClick={() => router.push("/products")}>See all →</Button>
         </div>
       </div>
       <div className=" grid sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-8xl items-center">

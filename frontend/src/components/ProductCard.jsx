@@ -20,7 +20,6 @@ function ProductCard({ id, imageLinks, name, rating, price , brand }) {
   const [quantity, setQuantity] = useState(null);
   
   const handleAddtoCart = (event) => {
-    // debugger;
     event.stopPropagation();
     const product = {
       id,
@@ -35,13 +34,12 @@ function ProductCard({ id, imageLinks, name, rating, price , brand }) {
   };
   useEffect(() => {
     setQuantity(useCartStore.getState().cart.find((p) => p.id === id)?.quantity ?? 0);
-  }, [])
-
+  }, []);
 
   const router = useRouter()
 
   const handleCardClick = () => {
-    router.push(`/aboutproduct?id=${id}&image=${image}&name=${name}&rating=${rating}&price=${price}`);
+    router.push(`/products/product?id=${id}&image=${image}&name=${name}&rating=${rating}&price=${price}`);
   };
 
 
