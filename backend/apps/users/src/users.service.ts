@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Mongoose, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { User } from '../../../libs/shared/schemas/user.schema';
 import { CreateUserDto } from '@libs/shared/dto/create/createUser.dto';
 import { Order } from '@libs/shared/schemas/order.schema';
@@ -16,7 +16,7 @@ import { AddressDTO } from '@libs/shared/dto/common/address.dto';
 import { CreateReviewDTO } from '@libs/shared/dto/create/createReview.dto';
 import { UpdateReviewDTO } from '@libs/shared/dto/update/updateReview.dto';
 import { Review } from '@libs/shared/schemas/review.schema';
-import { EachMessageHandler } from '@nestjs/microservices/external/kafka.interface';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -617,9 +617,8 @@ export class UsersService {
     }
   }
 
-  
-  ////////////////////////////////////
   //shopping List
+
   async getALLShoppingList(email: string) {
     try {
       const user = await this.userModel.findOne({ email: email }).exec();
@@ -1361,6 +1360,14 @@ export class UsersService {
       const existingItemIndex = cart?.items.findIndex((item) =>
         item.product.equals(productObjectId),
       );
+
+      if (!(existingItemIndex && cart?.items)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'Either cart is empty or item not found',
+        };
+      }
 
       // 4. Handle different actions
       let updateOperation;

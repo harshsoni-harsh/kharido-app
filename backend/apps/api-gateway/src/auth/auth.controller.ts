@@ -16,19 +16,22 @@ export class AuthController {
   @Get('google/callback')
   async googleAuthRedirect(@Query('code') code: string, @Res() res) {
     const tokens = await this.authService.googleAuthRedirect(code);
+    const frontendDomain = new URL(process.env.FRONTEND_URI ?? 'http://localhost:3000').hostname;
 
     res.cookie('jwt', tokens.accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'lax',
+      domain: frontendDomain,
     });
     res.cookie('refresh', tokens.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
+      domain: frontendDomain,
     });
 
-    res.redirect('http://localhost:3000/dashboard');
+    res.redirect(process.env.FRONTEND_URI ?? 'http://localhost:3000');
   }
 
   @Get('logout')

@@ -7,7 +7,7 @@ const useCartStore = create((set) => ({
 
   fetchCart: async () => {
     try {
-      const response = await axios.post("http://localhost:3000/users/get-cart", {
+      const response = await axios.post(`${process.env.BACKEND_URI}/users/get-cart`, {
         email: "john.doe@example.com",
       });
 
@@ -37,7 +37,7 @@ const useCartStore = create((set) => ({
       if (existingProduct) {
         // If the product exists, update it on the server
         axios
-          .post("http://localhost:3000/users/update-cart", {
+          .post(`${process.env.BACKEND_URI}/users/update-cart`, {
             email: "john.doe@example.com",
             productId: existingProduct.id,
             action: "increment",
@@ -75,7 +75,7 @@ const useCartStore = create((set) => ({
       } else {
         // If it's a new product, add it locally and send an API request
         axios
-          .post("http://localhost:3000/users/get-cart", {
+          .post(`${process.env.BACKEND_URI}/users/get-cart`, {
             email: "john.doe@example.com",
             productId: product.id,
             action: "add",
@@ -116,7 +116,7 @@ const useCartStore = create((set) => ({
     if (!product) return state; // If product not found, return state
 
     axios
-      .post("http://localhost:3000/users/update-cart", {
+      .post(`${process.env.BACKEND_URI}/users/update-cart`, {
         email: "john.doe@example.com",
         productId: productId,
         action: product.quantity > 1 ? "decrement" : "remove",
