@@ -23,10 +23,11 @@ export class UsersService {
     @InjectModel('User') private readonly userModel: Model<User>,
     @InjectModel('Order') private readonly orderModel: Model<Order>,
     @InjectModel('Product') private readonly ProductModel: Model<Product>,
-    @InjectModel('ShoppingList') private readonly shoppingListModel: Model<ShoppingList>,
+    @InjectModel('ShoppingList')
+    private readonly shoppingListModel: Model<ShoppingList>,
     @InjectModel('Cart') private readonly cartModel: Model<Cart>,
-    @InjectModel('Review') private readonly reviewModel: Model<Review>
-  ) { }
+    @InjectModel('Review') private readonly reviewModel: Model<Review>,
+  ) {}
 
   //handles user updates
   async getUserMeta(email: string) {
@@ -49,19 +50,77 @@ export class UsersService {
     }
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(
+    createUserDto: CreateUserDto,
+  ): Promise<{ statusCode: number; message: string; data?: any }> {
+    const session = await this.userModel.startSession();
+    session.startTransaction();
+
     try {
+      if (!createUserDto.email || !createUserDto.name) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Name and email are required',
+        };
+      }
+      const existingUser = await this.userModel
+        .findOne({ email: createUserDto.email })
+        .session(session)
+        .lean();
+
+      if (existingUser) {
+        await session.abortTransaction();
+        return {
+          statusCode: 409,
+          message: 'User with this email already exists',
+        };
+      }
+
       const userData = {
-        name: createUserDto.name,
-        email: createUserDto.email,
-        gender: createUserDto.gender,
-        addresses: createUserDto.addresses,
+        name: createUserDto.name.trim(),
+        email: createUserDto.email.toLowerCase().trim(),
+        gender: createUserDto.gender || 'unspecified',
+        addresses: createUserDto.addresses || [],
         role: 'user',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
-      const newUser = new this.userModel(userData);
-      return await newUser.save();
+      const newUser = await this.userModel.create([userData], { session });
+      await session.commitTransaction();
+
+      const userResponse = {
+        _id: newUser[0]._id,
+        name: newUser[0].name,
+        email: newUser[0].email,
+        gender: newUser[0].gender,
+        role: newUser[0].role,
+        // createdAt: newUser[0].createdAt
+      };
+
+      return {
+        statusCode: 201,
+        message: 'User created successfully',
+        data: userResponse,
+      };
     } catch (error) {
-      throw new Error(`Failed to create user: ${error.message}`);
+      await session.abortTransaction();
+      console.error('Error creating user:', error);
+
+      if (error.code === 11000) {
+        return {
+          statusCode: 409,
+          message: 'User with this email already exists',
+        };
+      }
+
+      return {
+        statusCode: 500,
+        message: 'Failed to create user',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
     }
   }
   // product related
@@ -81,7 +140,7 @@ export class UsersService {
         .exec();
       console.log(orders);
       const ordersWithoutItems = orders.map((order) => {
-        const { items, _id, ...rest } = order.toObject();
+        const { items, ...rest } = order.toObject();
         return rest;
       });
       // if whole user needs to be returned
@@ -136,190 +195,429 @@ export class UsersService {
     }
   }
 
-  async addressUpdate({ email, action, address }: { email: string; action: string; address?: AddressDTO }) {
-    // add/edit/delete addresses, max addresses some constant like 10
+  async addressUpdate({
+    email,
+    action,
+    address,
+  }: {
+    email: string;
+    action: string;
+    address?: AddressDTO;
+  }): Promise<{ statusCode: number; message: string; data?: any }> {
+    const MAX_ADDRESSES = 10;
+    const session = await this.userModel.startSession();
+    session.startTransaction();
+
     try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      if (!user) {
+      // 1. Validate inputs
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        await session.abortTransaction();
         return {
-          statusCode: 404,
-          message: "user not found"
+          statusCode: 400,
+          message: 'Invalid email format',
         };
       }
+
+      if (!['create', 'update', 'remove'].includes(action)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid action specified',
+        };
+      }
+
+      if ((action === 'create' || action === 'update') && !address) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Address is required for this action',
+        };
+      }
+
+      // 2. Find user with addresses
+      const user = await this.userModel
+        .findOne({ email })
+        .select('addresses')
+        .session(session);
+
+      if (!user) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'User not found',
+        };
+      }
+
+      // 3. Handle different actions
+      let updateOperation;
+      let responseMessage = 'Address updated successfully';
+
       switch (action) {
-        case "update":
-        case "create": {
-          if (!address) {
+        case 'create':
+          if (user.addresses.length >= MAX_ADDRESSES) {
+            await session.abortTransaction();
             return {
               statusCode: 400,
-              message: "invalid address, failed"
-            }
+              message: `Maximum ${MAX_ADDRESSES} addresses allowed`,
+            };
           }
-          let check = 0;
-          user.addresses.forEach(async (item, index) => {
-            if (item.name == address?.name) {
-              user.addresses[index] = address;
-              check = 1
-            }
-          })
-          if (!check) user.addresses.push(address)
-          await user.save();
-        };
-        case "remove": {
-          let check = 0, ind = -1;
-          if (address) {
-            user.addresses.forEach(async (item, index) => {
-              if (item.name == address?.name) {
-                check = 1;
-                ind = index;
-              }
-            })
-            if (check != -1) {
-              user.addresses.splice(ind, 1);
-              await user.save();
-              return {
-                statusCode: 200,
-                message: "OK"
-              }
-            }
-          }
-        };
-        default: {
-          return {
-            statusCode: 400,
-            message: "invalid action"
-          }
-        }
-      }
-    }
-    catch (error) {
-      Logger.error('Error fetching user orders:', error);
-      throw new InternalServerErrorException('Failed to fetch user cart');
-    }
-  }
 
-  async reviewUpdate({ email, reviewId, review }: { email: string; reviewId: string; review: UpdateReviewDTO }) {
-    //edit reviews, 1 review per product
-    try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      if (!user) {
-        // throw new NotFoundException('User not found');
-        return {
-          statusCode: 404,
-          message: "user not found"
-        };
-      }
-      let check = 0;
-      for (let i = 0; i < user.reviews.length; i++) {
-        if (user.reviews[i].equals(reviewId)) {
-          check = 1;
-          const oldRev = await this.reviewModel.findOne({ _id: reviewId }).exec();
-          if (!oldRev) {
+          const existingAddressIndex = user.addresses.findIndex(
+            (addr) => addr.name === address!.name,
+          );
+
+          if (existingAddressIndex >= 0) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              message: 'Address with this name already exists',
+            };
+          }
+
+          updateOperation = {
+            $push: { addresses: address },
+            $set: { updatedAt: new Date() },
+          };
+          responseMessage = 'Address added successfully';
+          break;
+
+        case 'update':
+          const updateIndex = user.addresses.findIndex(
+            (addr) => addr.name === address!.name,
+          );
+
+          if (updateIndex === -1) {
+            await session.abortTransaction();
             return {
               statusCode: 404,
-              message: "review not found"
-            }
+              message: 'Address not found',
+            };
           }
-          Object.keys(review).forEach((key) => {
-            if (review[key] !== undefined && review[key] != "_id" && review[key] != "userEmail" && review[key] != "userName" && review[key] != "product") {
-              oldRev[key] = review[key];
-            }
-          });
-          oldRev.lastUpdateAt = new Date();
-          await oldRev.save()
-          return {
-            statusCode: 200,
-            message: "OK"
-          }
-        }
-      }
-      if (!check) {
-        return {
-          statusCode: 404,
-          message: "review not found for this user."
-        }
-      }
-    }
-    catch (error) {
-      Logger.error(error);
-      throw new InternalServerErrorException('Failed to update user review');
-    }
-  }
 
-  async reviewCreate({ email, review }: { email: string; action: string; review: CreateReviewDTO }) {
-    //create review, 1 review per product
-    try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      if (review.userEmail != email) {
-        return {
-          statusCode: 403,
-          message: "review userEmail and email dont match"
-        }
+          updateOperation = {
+            $set: {
+              [`addresses.${updateIndex}`]: address,
+              updatedAt: new Date(),
+            },
+          };
+          break;
+
+        case 'remove':
+          if (!address?.name) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              message: 'Address name is required for removal',
+            };
+          }
+
+          const removeIndex = user.addresses.findIndex(
+            (addr) => addr.name === address.name,
+          );
+
+          if (removeIndex === -1) {
+            await session.abortTransaction();
+            return {
+              statusCode: 404,
+              message: 'Address not found',
+            };
+          }
+
+          updateOperation = {
+            $pull: { addresses: { name: address.name } },
+            $set: { updatedAt: new Date() },
+          };
+          responseMessage = 'Address removed successfully';
+          break;
       }
-      if (!user) {
-        // throw new NotFoundException('User not found');
-        return {
-          statusCode: 404,
-          message: "user not found"
-        };
-      }
-      const exists = await this.reviewModel.findOne({ userEmail: email, product: review.product }).exec();
-      if (exists) {
-        Logger.error("fatal error 2 or more review by same user for same product.")
-        await this.reviewModel.deleteMany({ userEmail: email, product: review.product }).exec();
-      }
-      const newReview = await this.reviewModel.create(review);
-      user.reviews.push(newReview._id);
-      await user.save();
+
+      // 4. Apply the update
+      const updatedUser = await this.userModel
+        .findOneAndUpdate({ email }, updateOperation, { new: true, session })
+        .select('addresses')
+        .lean();
+
+      await session.commitTransaction();
+
       return {
         statusCode: 200,
-        message: "OK"
-      }
+        message: responseMessage,
+        data: {
+          addresses: updatedUser!.addresses,
+        },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error updating address:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to update address',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
     }
-    catch (error) {
-      Logger.error(error);
-      throw new InternalServerErrorException('Failed to update user review');
+  }
+  async reviewUpdate({
+    email,
+    reviewId,
+    review,
+  }: {
+    email: string;
+    reviewId: string;
+    review: UpdateReviewDTO;
+  }): Promise<{ statusCode: number; message: string; data?: any }> {
+    const session = await this.userModel.startSession();
+    session.startTransaction();
+
+    try {
+      if (!Types.ObjectId.isValid(reviewId)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid review ID format',
+        };
+      }
+
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid email format',
+        };
+      }
+
+      if (!review || Object.keys(review).length === 0) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Review update data is required',
+        };
+      }
+
+      //verify user exists and owns the review
+      const user = await this.userModel
+        .findOne({ email, reviews: reviewId })
+        .select('_id')
+        .session(session)
+        .lean();
+
+      if (!user) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'User not found or review does not belong to user',
+        };
+      }
+
+      const updateObj: any = { lastUpdateAt: new Date() };
+      const allowedFields = [
+        'rating',
+        'title',
+        'description',
+        'imageLinks',
+        'tags',
+      ];
+      const restrictedFields = ['_id', 'userEmail', 'userName', 'product'];
+
+      Object.keys(review).forEach((key) => {
+        if (
+          allowedFields.includes(key) &&
+          !restrictedFields.includes(key) &&
+          review[key] !== undefined
+        ) {
+          updateObj[key] = review[key];
+        }
+      });
+
+      // update the review (atomic operation)
+      const updatedReview = await this.reviewModel
+        .findOneAndUpdate(
+          { _id: reviewId },
+          { $set: updateObj },
+          { new: true, session },
+        )
+        .select('-__v') // Exclude version key
+        .lean();
+
+      if (!updatedReview) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'Review not found',
+        };
+      }
+
+      await session.commitTransaction();
+
+      return {
+        statusCode: 200,
+        message: 'Review updated successfully',
+        data: updatedReview,
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error updating review:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to update review',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
     }
   }
 
-  async reviewDelete({ email, review }: { email: string; action: string; review: UpdateReviewDTO }) {
+  async reviewCreate({
+    email,
+    review,
+  }: {
+    email: string;
+    review: CreateReviewDTO;
+  }): Promise<{ statusCode: number; message: string; data?: any }> {
+    const session = await this.userModel.startSession();
+    session.startTransaction();
+
+    try {
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid email format',
+        };
+      }
+
+      if (
+        !review ||
+        !review.product ||
+        !Types.ObjectId.isValid(review.product)
+      ) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Valid product ID is required',
+        };
+      }
+
+      if (review.userEmail !== email) {
+        await session.abortTransaction();
+        return {
+          statusCode: 403,
+          message: 'Review userEmail and authenticated email do not match',
+        };
+      }
+
+      const user = await this.userModel
+        .findOne({ email })
+        .select('_id reviews')
+        .session(session);
+
+      if (!user) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'User not found',
+        };
+      }
+
+      const existingReview = await this.reviewModel
+        .findOne({ userEmail: email, product: review.product })
+        .session(session)
+        .lean();
+
+      if (existingReview) {
+        await this.reviewModel
+          .deleteOne({ _id: existingReview._id })
+          .session(session);
+
+        user.reviews = user.reviews.filter(
+          (id) => !id.equals(existingReview._id),
+        );
+      }
+
+      const newReview = await this.reviewModel.create(
+        [
+          {
+            ...review,
+            createdAt: new Date(),
+            lastUpdateAt: new Date(),
+          },
+        ],
+        { session },
+      );
+
+      user.reviews.push(newReview[0]._id);
+      await user.save({ session });
+
+      await session.commitTransaction();
+
+      return {
+        statusCode: 201,
+        message: 'Review created successfully',
+        data: {
+          reviewId: newReview[0]._id,
+          productId: review.product,
+        },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error creating review:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to create review',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
+  }
+
+  async reviewDelete({
+    email,
+    review,
+  }: {
+    email: string;
+    action: string;
+    review: UpdateReviewDTO;
+  }) {
     try {
       const user = await this.userModel.findOne({ email: email }).exec();
       if (!user) {
         // throw new NotFoundException('User not found');
         return {
           statusCode: 404,
-          message: "user not found"
+          message: 'user not found',
         };
       }
       if (review.userEmail != email) {
         return {
           statusCode: 403,
-          message: "review userEmail and email dont match"
-        }
+          message: 'review userEmail and email dont match',
+        };
       }
-      const exists = await this.reviewModel.findOne({ userEmail: email, product: review.product }).exec();
+      const exists = await this.reviewModel
+        .findOne({ userEmail: email, product: review.product })
+        .exec();
       if (!exists) {
         return {
           statusCode: 403,
-          message: "review userEmail and email dont match"
-        }
+          message: 'review userEmail and email dont match',
+        };
       }
-      await this.reviewModel.deleteOne({ userEmail: email, product: review.product }).exec();
+      await this.reviewModel
+        .deleteOne({ userEmail: email, product: review.product })
+        .exec();
       return {
         statusCode: 200,
-        message: "OK"
-      }
-    }
-    catch (error) {
+        message: 'OK',
+      };
+    } catch (error) {
       Logger.error(error);
       throw new InternalServerErrorException('Failed to update user review');
     }
   }
 
-  async orderUpdate() {
-    //request changes in order done by  user like cancel, return, replace
-  }
+  
   ////////////////////////////////////
   //shopping List
   async getALLShoppingList(email: string) {
@@ -353,43 +651,100 @@ export class UsersService {
     }
   }
   //just returning list with unpopulated items  , leaving populating item responsibility on frontend as user scrolls for efficiency
-  async getShoppingList(email: string, id: string) {
+  async getShoppingList(
+    email: string,
+    id: string,
+  ): Promise<{ statusCode: number; message: string; data?: any }> {
     try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      if (!user) {
-        throw new NotFoundException('User not found');
-        //  return null;
+      if (!Types.ObjectId.isValid(id)) {
+        return {
+          statusCode: 400,
+          message: 'Invalid shopping list ID format',
+        };
       }
-      const shoppingList = await this.shoppingListModel.findOne({ _id: id, email: email }).exec();
-      return shoppingList?.toObject();
+
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return {
+          statusCode: 400,
+          message: 'Invalid email format',
+        };
+      }
+
+      const userExists = await this.userModel.exists({ email }).lean();
+      if (!userExists) {
+        return {
+          statusCode: 404,
+          message: 'User not found',
+        };
+      }
+      const shoppingList = await this.shoppingListModel
+        .findOne({ _id: id, email })
+        .select('_id email name description items createdAt updatedAt') // Explicitly select fields
+        .lean();
+
+      if (!shoppingList) {
+        return {
+          statusCode: 404,
+          message: 'Shopping list not found',
+        };
+      }
+      return {
+        statusCode: 200,
+        message: 'Shopping list retrieved successfully',
+        data: {
+          ...shoppingList,
+          items: shoppingList.items.map((item) => ({
+            product: item.product.toString(), // Convert ObjectId to string
+            timeAdded: item.timeAdded,
+          })),
+        },
+      };
     } catch (error) {
-      console.error('Error fetching user:', error);
-      throw new InternalServerErrorException('Failed to fetch user');
-      // return null;
+      console.error('Error fetching shopping list:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to fetch shopping list',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
     }
   }
 
-  async shoppingListCreate({ email, name, description }: { email: string; name: string; description?: string }) {
+  async shoppingListCreate({
+    email,
+    name,
+    description,
+  }: {
+    email: string;
+    name: string;
+    description?: string;
+  }) {
     try {
       const user = await this.userModel.findOne({ email: email }).exec();
       if (!user) {
         throw new NotFoundException('User not found');
         //  return null;
       }
-      const exists = await this.shoppingListModel.findOne({ email: email, name: name }).exec();
+      const exists = await this.shoppingListModel
+        .findOne({ email: email, name: name })
+        .exec();
       if (exists) {
         return {
           statusCode: 400,
-          message: "a shopping list with same name already exists"
-        }
+          message: 'a shopping list with same name already exists',
+        };
       }
-      const newList = await this.shoppingListModel.create({ name: name, email:email,description: description, items: [] });
+      const newList = await this.shoppingListModel.create({
+        name: name,
+        email: email,
+        description: description,
+        items: [],
+      });
       user.shoppingLists.push(newList.id);
       await user.save();
       return {
         statusCode: 200,
-        message: "OK"
-      }
+        message: 'OK',
+      };
     } catch (error) {
       console.error('Error fetching user:', error);
       throw new InternalServerErrorException('Failed to fetch user');
@@ -397,34 +752,35 @@ export class UsersService {
     }
   }
 
-  async shoppingListRemove(email:string, id:string) {
-    
+  async shoppingListRemove(email: string, id: string) {
     try {
       const user = await this.userModel.findOne({ email: email }).exec();
       if (!user) {
         throw new NotFoundException('User not found');
         //  return null;
       }
-      const exists = await this.shoppingListModel.findOne({ email: email, _id:id }).exec();
+      const exists = await this.shoppingListModel
+        .findOne({ email: email, _id: id })
+        .exec();
       if (!exists) {
         return {
           statusCode: 400,
-          message: "shopping list does not exists."
+          message: 'shopping list does not exists.',
+        };
+      }
+      await this.shoppingListModel.deleteOne({ email: email, _id: id }).exec();
+
+      for (let i = 0; i < user.shoppingLists.length; i++) {
+        if (user.shoppingLists[i].equals(id)) {
+          user.shoppingLists.splice(i, 1);
+          await user.save();
+          break;
         }
       }
-      await this.shoppingListModel.deleteOne({ email: email, _id:id }).exec();
-      
-      for(let i=0; i<user.shoppingLists.length;i++){
-        if(user.shoppingLists[i].equals(id)){
-            user.shoppingLists.splice(i,1);
-            await user.save();
-            break;
-          }
-        }
       return {
         statusCode: 200,
-        message: "OK"
-      }
+        message: 'OK',
+      };
     } catch (error) {
       console.error('Error fetching user:', error);
       throw new InternalServerErrorException('Failed to fetch user');
@@ -432,244 +788,709 @@ export class UsersService {
     }
   }
 
-  async shoppingListMetaUpdate(email:string ,listId:string, description?: string) {
+  async shoppingListMetaUpdate(
+    email: string,
+    listId: string,
+    description?: string,
+  ) {
     //for updating descriptions,
   }
   //not useful since quantity cant be set in shopping list
-  // async ShoppingListToCart() {
-  //   //for adding all items of a shopping list to cart
-  //   // deletes cart then add items
-  // }
+  async ShoppingListToCart(
+    email: string,
+    listId: string,
+  ): Promise<{ statusCode: number; message: string; data?: any }> {
+    const session = await this.cartModel.startSession();
+    session.startTransaction();
 
-  async shoppingListAddItem(email:string ,listId:string, product: string) {
-    //for adding products 
     try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      if (!user) {
-        throw new NotFoundException('User not found');
-        //  return null;
-      }
-      const exists = await this.shoppingListModel.findOne({ email: email, _id:listId }).exec();
-      
-      if (!exists) {
+      // 1. Validate inputs
+      if (!Types.ObjectId.isValid(listId)) {
+        await session.abortTransaction();
         return {
           statusCode: 400,
-          message: "shopping list does not exists."
-        }
+          message: 'Invalid shopping list ID format',
+        };
       }
-      const existingItem =exists.items.find((item,index)=>{item.product.equals(product)})
-      if(existingItem){
-        return{
-           statusCode: 400,
-        message: "item already in the list"
-        }
+
+      // 2. Verify user exists
+      const user = await this.userModel
+        .findOne({ email })
+        .select('_id email')
+        .session(session)
+        .lean();
+
+      if (!user) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'User not found',
+        };
       }
-      const oid = new Types.ObjectId(product)
-      exists.items.push({product: oid, timeAdded:new Date() });
-      
-      await exists.save();
+
+      // 3. Get shopping list with items
+      const shoppingList = await this.shoppingListModel
+        .findOne({ _id: listId, email })
+        .select('items')
+        .populate('items.product', '_id')
+        .session(session)
+        .lean();
+
+      if (!shoppingList) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'Shopping list not found',
+        };
+      }
+
+      if (shoppingList.items.length === 0) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Shopping list is empty',
+        };
+      }
+
+      // 4. Prepare cart items (merge duplicates and set quantity to 1)
+      const cartItemsMap = new Map<
+        string,
+        { product: Types.ObjectId; quantity: number }
+      >();
+
+      shoppingList.items.forEach((item) => {
+        const productId = item.product._id.toString();
+        if (cartItemsMap.has(productId)) {
+          const existing = cartItemsMap.get(productId);
+          cartItemsMap.set(productId, {
+            product: item.product._id,
+            quantity: existing!.quantity + 1,
+          });
+        } else {
+          cartItemsMap.set(productId, {
+            product: item.product._id,
+            quantity: 1,
+          });
+        }
+      });
+
+      const cartItems = Array.from(cartItemsMap.values());
+
+      // 5. Find or create cart and update
+      let cart = await this.cartModel.findOne({ email }).session(session);
+
+      if (!cart) {
+        cart = await this.cartModel.create(
+          [
+            {
+              email: user.email,
+              items: cartItems,
+              updatedAt: new Date(),
+            },
+          ],
+          { session },
+        )[0];
+
+        await this.userModel.findByIdAndUpdate(
+          user._id,
+          { $set: { cart: cart?._id } },
+          { session },
+        );
+      } else {
+        // Merge existing cart items with shopping list items
+        const existingItemsMap = new Map<
+          string,
+          { product: Types.ObjectId; quantity: number }
+        >();
+
+        cart.items.forEach((item) => {
+          existingItemsMap.set(item.product.toString(), {
+            product: item.product,
+            quantity: item.quantity,
+          });
+        });
+
+        cartItems.forEach((item) => {
+          const productId = item.product.toString();
+          if (existingItemsMap.has(productId)) {
+            existingItemsMap.get(productId)!.quantity += item.quantity;
+          } else {
+            existingItemsMap.set(productId, item);
+          }
+        });
+
+        const mergedItems = Array.from(existingItemsMap.values());
+
+        cart = await this.cartModel.findOneAndUpdate(
+          { _id: cart._id },
+          {
+            $set: {
+              items: mergedItems,
+              updatedAt: new Date(),
+            },
+          },
+          { new: true, session },
+        );
+      }
+
+      await session.commitTransaction();
+
+      // 6. Get populated cart data
+      const populatedCart = await this.cartModel
+        .findById(cart?._id)
+        .populate('items.product', '_id name price images')
+        .lean();
+
       return {
         statusCode: 200,
-        message: "OK"
-      }
+        message: 'Shopping list items added to cart successfully',
+        data: populatedCart,
+      };
     } catch (error) {
-      console.error('Error fetching user:', error);
-      throw new InternalServerErrorException('Failed to fetch user');
-      // return null;
+      await session.abortTransaction();
+      console.error('Error transferring shopping list to cart:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to transfer shopping list to cart',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
     }
   }
 
-  async shoppingListDeleteItem(email:string ,listId:string, product: string) {
-    //for  deleting products
+  async shoppingListAddItem(
+    email: string,
+    listId: string,
+    productId: string,
+  ): Promise<{ statusCode: number; message: string; data?: any }> {
+    // Validate input IDs first
+    if (!Types.ObjectId.isValid(listId) || !Types.ObjectId.isValid(productId)) {
+      return {
+        statusCode: 400,
+        message: 'Invalid ID format',
+      };
+    }
+
+    const session = await this.shoppingListModel.startSession();
+    session.startTransaction();
+
     try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      if (!user) {
-        throw new NotFoundException('User not found');
-        //  return null;
+      // 1. Verify user exists
+      const userExists = await this.userModel
+        .exists({ email })
+        .session(session);
+      if (!userExists) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'User not found',
+        };
       }
-      const exists = await this.shoppingListModel.findOne({ email: email, _id:listId }).exec();
-      
-      if (!exists) {
+
+      // 2. Get the shopping list (need full document for modification)
+      const shoppingList = await this.shoppingListModel
+        .findOne({ _id: listId, email })
+        .session(session);
+
+      if (!shoppingList) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'Shopping list not found',
+        };
+      }
+
+      // 3. Convert productId to ObjectId for comparison
+      const productObjectId = new Types.ObjectId(productId);
+
+      // 4. Check for existing item
+      const itemExists = shoppingList.items.some(
+        (item) => item.product.toString() === productObjectId.toString(),
+      );
+
+      if (itemExists) {
+        await session.abortTransaction();
         return {
           statusCode: 400,
-          message: "shopping list does not exists."
-        }
+          message: 'Item already exists in the list',
+        };
       }
-   
-      const existingItem =exists.items.findIndex((item,index)=>{item.product.equals(product)})
-      if(existingItem==-1){
-        return{
-           statusCode: 400,
-        message: "product not in the list"
-        }
-      }
-      
-      exists.items.splice(existingItem,1);
-      await exists.save();
+
+      // 5. Add new item
+      shoppingList.items.push({
+        product: productObjectId,
+        timeAdded: new Date(),
+      });
+      // shoppingList.updatedAt = new Date();
+      await shoppingList.save({ session });
+
+      await session.commitTransaction();
+
       return {
         statusCode: 200,
-        message: "OK"
-      }
+        message: 'Item added successfully',
+        data: {
+          items: shoppingList.items,
+        },
+      };
     } catch (error) {
-      console.error('Error fetching user:', error);
-      throw new InternalServerErrorException('Failed to fetch user');
-      // return null;
+      await session.abortTransaction();
+      console.error('Error in shoppingListAddItem:', error);
+
+      return {
+        statusCode: 500,
+        message: 'Failed to add item to shopping list',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
     }
   }
-  
-  
+
+  async shoppingListDeleteItem(
+    email: string,
+    listId: string,
+    productId: string,
+  ): Promise<{ statusCode: number; message: string; data?: any }> {
+    if (!Types.ObjectId.isValid(listId) || !Types.ObjectId.isValid(productId)) {
+      return {
+        statusCode: 400,
+        message: 'Invalid ID format',
+      };
+    }
+
+    const session = await this.shoppingListModel.startSession();
+    session.startTransaction();
+
+    try {
+      // 1. Verify user exists
+      const userExists = await this.userModel
+        .exists({ email })
+        .session(session);
+      if (!userExists) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'User not found',
+        };
+      }
+
+      const shoppingList = await this.shoppingListModel
+        .findOne({ _id: listId, email })
+        .session(session);
+
+      if (!shoppingList) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'Shopping list not found',
+        };
+      }
+
+      const productObjectId = new Types.ObjectId(productId);
+
+      const initialLength = shoppingList.items.length;
+      shoppingList.items = shoppingList.items.filter(
+        (item) => item.product.toString() !== productObjectId.toString(),
+      );
+
+      if (shoppingList.items.length === initialLength) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Product not found in the list',
+        };
+      }
+
+      // shoppingList.updatedAt = new Date();
+      await shoppingList.save({ session });
+
+      await session.commitTransaction();
+
+      return {
+        statusCode: 200,
+        message: 'Item removed successfully',
+        data: {
+          items: shoppingList.items,
+        },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error in shoppingListDeleteItem:', error);
+
+      return {
+        statusCode: 500,
+        message: 'Failed to remove item from shopping list',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
+  }
+
   ////////////////////////////////////////
   //cart related stuff
-  async getCart(email: String) {
+  async getCart(
+    email: string,
+  ): Promise<{ statusCode: number; message: string; data?: any }> {
     try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      // Logger.log(user);
-      const cart = await this.cartModel.findOne({ email: email }).exec();
-      const filledCart = cart as any
-      for (let i = 0; i < cart!.items.length || 0; i++) {
-        const id = cart!.items[i].product;
-        const p = await this.ProductModel.findOne({ _id: cart?.items[i].product }).exec()
-        filledCart.items[i].product = p;
+      //  Validate email format
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return {
+          statusCode: 400,
+          message: 'Invalid email format',
+        };
       }
-      Logger.log(cart);
-      return filledCart;
-      if (!user) {
-        // throw new NotFoundException('User not found');
-        return null;
-      }
-    }
-    catch (error) {
-      Logger.error('Error fetching user orders:', error);
-      throw new InternalServerErrorException('Failed to fetch user cart');
-    }
-  }
 
-  async clearCart(email: string) {
-    try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      // Logger.log(user);
-      if (!user) {
-        // throw new NotFoundException('User not found');
+      //check user exist
+      const userExists = await this.userModel.exists({ email }).lean();
+      if (!userExists) {
         return {
           statusCode: 404,
-          message: "user not found"
+          message: 'User not found',
         };
       }
-      const cart = await this.cartModel.findOne({ email: email }).exec();
-      if (!cart) {
-        Logger.error("fatal user cart found null");
-        const newCart = await this.cartModel.create({ user: user.name, email: user.email })
-        user.cart = newCart._id;
-        return {
-          statusCode: 404,
-          message: "user not found"
-        };
-      }
-      cart!.items = []
-      return;
-    }
-    catch (error) {
-      Logger.error('Error fetching user orders:', error);
-      throw new InternalServerErrorException('Failed to fetch user cart');
-    }
-  }
 
-  async cartUpdate({ email, productId, quantity, action }: { email: string; productId: string; quantity?: number, action: string }) {
-    //for adding  a product to cart for first time or incrementing/decrementing it, or removing a product/all product
-    // the action is supplied as string in json obj
-    try {
-      const user = await this.userModel.findOne({ email: email }).exec();
-      // Logger.log(user);
-      if (!user) {
-        // throw new NotFoundException('User not found');
-        return {
-          statusCode: 404,
-          message: "user not found"
-        };
-      }
-      const cart = await this.cartModel.findOne({ email: email }).exec();
+      //
+      const cart = await this.cartModel
+        .findOne({ email })
+        .populate({
+          path: 'items.product',
+          model: 'Product',
+          select: '_id name price imageLinks', // Only include necessary fields
+        })
+        .lean();
+
       if (!cart) {
-        Logger.error("fatal user cart found null");
-        const newCart = await this.cartModel.create({ user: user.name, email: user.email })
-        user.cart = newCart._id;
         return {
           statusCode: 200,
-          message: "cart empty"
+          message: 'Cart is empty',
+          data: { items: [] },
         };
       }
-      let check = 0, index = 0;
-      for (let i = 0; i < cart.items.length; i++) {
-        if (cart.items[i].product.equals(productId)) {
-          check = 1;
-          index = i;
-        }
-        break;
+
+      // Transform the cart data
+      const transformedCart = {
+        ...cart,
+        items: cart.items.map((item) => ({
+          ...item,
+          product: item.product || null, // Handle cases where product might be deleted
+        })),
+      };
+
+      return {
+        statusCode: 200,
+        message: 'Cart retrieved successfully',
+        data: transformedCart,
+      };
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to fetch cart',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    }
+  }
+  async clearCart(
+    email: string,
+  ): Promise<{ statusCode: number; message: string; data?: any }> {
+    const session = await this.cartModel.startSession();
+    session.startTransaction();
+
+    try {
+      // 1. Validate email format
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid email format',
+        };
       }
-      if (!check) {
+
+      // 2. Verify user exists (lean query for performance)
+      const user = await this.userModel
+        .findOne({ email })
+        .select('_id email')
+        .session(session)
+        .lean();
+
+      if (!user) {
+        await session.abortTransaction();
         return {
           statusCode: 404,
-          message: "item not in user cart"
+          message: 'User not found',
         };
       }
-      switch (action) {
-        case "increment": {
-          cart.items[index].quantity = cart.items[index].quantity + 1;
-          break;
-        }
-        case "decrement": {
-          if (cart.items[index].quantity > 1) {
-            cart.items[index].quantity = cart.items[index].quantity - 1;
-          }
-          else {
-            return {
-              statusCode: 403,
-              message: "can't decrement below 1"
-            }
-          }
-          break;
-        }
-        case "add": {
-          if (!quantity || quantity < 0) return {
-            statusCode: 403,
-            message: "invalid quantity"
-          }
-          else {
-            const q = parseInt(quantity.toString());
-            cart.items[index].quantity = cart.items[index].quantity + quantity;
-          }
-          break;
-        }
-        case "set": {
-          if (!quantity || quantity < 0) return {
-            statusCode: 403,
-            message: "invalid quantity"
-          }
-          else {
-            const q = parseInt(quantity.toString());
-            cart.items[index].quantity = quantity;
-          }
-          break;
-        }
-        case "remove": {
-          cart.items.splice(index, 1);
-          break;
-        }
-        default: {
-          return {
-            statusCode: 400,
-            message: "invalid action"
-          }
-        }
+
+      // 3. Find and clear the cart (atomic operation)
+      const result = await this.cartModel
+        .findOneAndUpdate(
+          { email },
+          { $set: { items: [], updatedAt: new Date() } },
+          { new: true, session },
+        )
+        .lean();
+
+      if (!result) {
+        // 4. Create new empty cart if none exists
+        const newCart = await this.cartModel.create(
+          [
+            {
+              email: user.email,
+              items: [],
+              updatedAt: new Date(),
+            },
+          ],
+          { session },
+        );
+
+        await this.userModel.findByIdAndUpdate(
+          user._id,
+          { $set: { cart: newCart[0]._id } },
+          { session },
+        );
+
+        await session.commitTransaction();
+        return {
+          statusCode: 200,
+          message: 'Cart created and cleared successfully',
+          data: { items: [] },
+        };
       }
-      await cart.save();
+
+      await session.commitTransaction();
       return {
-        statusCode: 200
+        statusCode: 200,
+        message: 'Cart cleared successfully',
+        data: { items: [] },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error clearing cart:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to clear cart',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
+  }
+  async cartUpdate({
+    email,
+    productId,
+    quantity = 1,
+    action,
+  }: {
+    email: string;
+    productId: string;
+    quantity?: number;
+    action: string;
+  }): Promise<{ statusCode: number; message: string; data?: any }> {
+    const session = await this.cartModel.startSession();
+    session.startTransaction();
+
+    try {
+      // 1. Validate inputs
+      if (!Types.ObjectId.isValid(productId)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid product ID format',
+        };
       }
+
+      if (
+        !['add', 'set', 'increment', 'decrement', 'remove'].includes(action)
+      ) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid action specified',
+        };
+      }
+
+      if (action === 'set' && (typeof quantity !== 'number' || quantity < 1)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          message: 'Invalid quantity for set action',
+        };
+      }
+
+      // 2. Verify user exists
+      const user = await this.userModel
+        .findOne({ email })
+        .select('_id email')
+        .session(session)
+        .lean();
+
+      if (!user) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          message: 'User not found',
+        };
+      }
+
+      // 3. Find or create cart
+      let cart = await this.cartModel.findOne({ email }).session(session);
+
+      if (!cart) {
+        cart = await this.cartModel.create(
+          [
+            {
+              email: user.email,
+              items: [],
+              updatedAt: new Date(),
+            },
+          ],
+          { session },
+        )[0];
+
+        await this.userModel.findByIdAndUpdate(
+          user._id,
+          { $set: { cart: cart?._id } },
+          { session },
+        );
+      }
+
+      const productObjectId = new Types.ObjectId(productId);
+      const existingItemIndex = cart?.items.findIndex((item) =>
+        item.product.equals(productObjectId),
+      );
+
+      // 4. Handle different actions
+      let updateOperation;
+      let responseMessage = 'Cart updated successfully';
+
+      switch (action) {
+        case 'add':
+          if (existingItemIndex >= 0) {
+            updateOperation = {
+              $inc: { [`items.${existingItemIndex}.quantity`]: quantity },
+            };
+          } else {
+            updateOperation = {
+              $push: {
+                items: {
+                  product: productObjectId,
+                  quantity: quantity,
+                  addedAt: new Date(),
+                },
+              },
+            };
+          }
+          break;
+
+        case 'set':
+          if (existingItemIndex >= 0) {
+            updateOperation = {
+              $set: { [`items.${existingItemIndex}.quantity`]: quantity },
+            };
+          } else {
+            updateOperation = {
+              $push: {
+                items: {
+                  product: productObjectId,
+                  quantity: quantity,
+                  addedAt: new Date(),
+                },
+              },
+            };
+          }
+          break;
+
+        case 'increment':
+          if (existingItemIndex >= 0) {
+            updateOperation = {
+              $inc: { [`items.${existingItemIndex}.quantity`]: 1 },
+            };
+          } else {
+            updateOperation = {
+              $push: {
+                items: {
+                  product: productObjectId,
+                  quantity: 1,
+                  addedAt: new Date(),
+                },
+              },
+            };
+          }
+          break;
+
+        case 'decrement':
+          if (existingItemIndex >= 0) {
+            if (cart?.items[existingItemIndex].quantity <= 1) {
+              updateOperation = {
+                $pull: { items: { product: productObjectId } },
+              };
+              responseMessage = 'Item removed from cart (quantity was 1)';
+            } else {
+              updateOperation = {
+                $inc: { [`items.${existingItemIndex}.quantity`]: -1 },
+              };
+            }
+          } else {
+            await session.abortTransaction();
+            return {
+              statusCode: 404,
+              message: 'Item not found in cart',
+            };
+          }
+          break;
+
+        case 'remove':
+          if (existingItemIndex >= 0) {
+            updateOperation = {
+              $pull: { items: { product: productObjectId } },
+            };
+          } else {
+            await session.abortTransaction();
+            return {
+              statusCode: 404,
+              message: 'Item not found in cart',
+            };
+          }
+          break;
+      }
+
+      // 5. Apply the update
+      const updatedCart = await this.cartModel
+        .findOneAndUpdate(
+          { _id: cart?._id },
+          {
+            ...updateOperation,
+            $set: { updatedAt: new Date() },
+          },
+          { new: true, session },
+        )
+        .populate('items.product', '_id name price imageLinks')
+        .lean();
+
+      await session.commitTransaction();
+
+      return {
+        statusCode: 200,
+        message: responseMessage,
+        data: updatedCart,
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error updating cart:', error);
+      return {
+        statusCode: 500,
+        message: 'Failed to update cart',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
     }
-    catch (error) {
-      Logger.error('Error fetching user orders:', error);
-      throw new InternalServerErrorException('Failed to fetch user cart');
-    }
+  }
+  async orderUpdate() {
+    //request changes in order done by  user like cancel, return, replace
   }
 
   async cartBuy() {

@@ -1,5 +1,5 @@
 import { Logger, Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
+import { UserController} from './users.controller';
 import { UsersService } from './users.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '@libs/shared/schemas/user.schema';
@@ -41,7 +41,7 @@ import { ConfigModule } from '@nestjs/config';
       { name: Cart.name, schema: CartSchema },
     ]),
   ],
-  controllers: [UsersController],
+  controllers: [UserController],
   providers: [UsersService],
 })
 export class UsersModule {}
