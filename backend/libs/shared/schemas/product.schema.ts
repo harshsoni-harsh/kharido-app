@@ -64,6 +64,9 @@ export class Product {
     type: [{ property: String, value: String }],
   })
   specification: { property: string; value: string }[];
+  
+  @Prop()
+  discontinued: string;
 
   @Prop()
   updatedAt: Date;

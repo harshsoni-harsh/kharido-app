@@ -30,9 +30,6 @@ export class Category {
   @Prop()
   searchTags: string[];
 
-  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'Review' }] })
-  reviews: mongoose.Types.ObjectId[];
-
   @Prop()
   defaultTax:number;
 

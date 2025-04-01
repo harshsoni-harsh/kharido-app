@@ -1,10 +1,13 @@
-import { IsArray, IsDate, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDate, IsOptional, IsPositive, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateCategoryDTO {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @IsString()
+  _id: string;
 
   @IsString()
   @IsOptional()
@@ -17,12 +20,12 @@ export class UpdateCategoryDTO {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  products?: string[]; // Assuming products are passed as ObjectId strings
+  products?: string[]; 
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  topProducts?: string[]; // Assuming topProducts are passed as ObjectId strings
+  topProducts?: string[]; 
 
   @IsDate()
   @IsOptional()
@@ -39,14 +42,9 @@ export class UpdateCategoryDTO {
   @IsOptional()
   searchTags?: string[];
 
-  @IsArray()
-  @IsString({ each: true })
   @IsOptional()
-  reviews?: string[]; // Assuming reviews are passed as ObjectId strings
-
-  @IsArray()
-  @IsOptional()
-  specification?: Array<{ property: string; value: string }>;
+  @IsPositive()
+  defaultTax:number;
 
   @IsDate()
   @IsOptional()

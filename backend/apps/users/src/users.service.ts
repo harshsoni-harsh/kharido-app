@@ -84,7 +84,7 @@ export class UsersService {
         addresses: createUserDto.addresses || [],
         role: 'user',
         createdAt: new Date(),
-        updatedAt: new Date(),
+        // updatedAt: new Date(),
       };
       const newUser = await this.userModel.create([userData], { session });
       await session.commitTransaction();
@@ -95,7 +95,7 @@ export class UsersService {
         email: newUser[0].email,
         gender: newUser[0].gender,
         role: newUser[0].role,
-        // createdAt: newUser[0].createdAt
+        createdAt: newUser[0].createdAt
       };
 
       return {

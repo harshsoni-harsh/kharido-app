@@ -37,18 +37,18 @@ export class Order {
   @Prop()
   price: number;
 
-  @Prop()
+  @Prop({immutable:true})
   createdAt: Date;
   
   @Prop({ type: Address })
   address: Address;
 
   @Prop({
-    type: [{ type: String, time: Date }],
+    type: [{ property: String, time: Date }],
   })
-  status: { property: string; value: Date }[];
+  status: { property: string; time: Date }[];
 
-
+o
   @Prop()
   trackingLink: string;
 

@@ -13,6 +13,9 @@ export class UpdateProductDTO {
   name?: string;
 
   @IsString()
+  _id: string;
+
+  @IsString()
   @IsOptional()
   sku?: string;
 
@@ -77,15 +80,9 @@ export class UpdateProductDTO {
 
   @IsArray()
   @IsOptional()
-  reviews?: string[]; // Assuming reviews are passed as ObjectId strings
-
-  @IsArray()
-  @IsOptional()
   specification?: Array<{ property: string; value: string }>;
 
-  @IsArray()
-  @IsOptional()
-  variants?: Array<{ property: string; value: string }>;
+ 
 
   @IsDate()
   @IsOptional()

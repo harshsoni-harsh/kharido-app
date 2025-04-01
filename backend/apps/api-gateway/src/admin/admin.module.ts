@@ -7,6 +7,14 @@ import { AdminController } from './admin.controller';
   imports: [
     ClientsModule.register([
       {
+        name: 'ADMIN_CLIENT',
+        transport: Transport.TCP,
+        options: {
+          host: process.env.ADMIN_SERVICE_HOST ?? 'localhost',
+          port: parseInt(process.env.ADMIN_SERVICE_PORT ?? '3003'),
+        },
+      },
+      {
         name: 'AUTH_CLIENT',
         transport: Transport.TCP,
         options: {
@@ -15,16 +23,7 @@ import { AdminController } from './admin.controller';
         },
       },
     ]),
-    ClientsModule.register([
-      {
-        name: 'ADMIN_CLIENT',
-        transport: Transport.TCP,
-        options: {
-          host: process.env.ADMIN_HOST ?? 'localhost',
-          port: parseInt(process.env.ADMIN_SERVICE_PORT ?? '3003'),
-        },
-      },
-    ]),
+ 
   ],
   providers: [AdminService],
   controllers: [AdminController],

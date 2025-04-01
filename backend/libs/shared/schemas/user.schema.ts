@@ -60,6 +60,9 @@ export class User {
 
   @Prop({type: mongoose.Types.ObjectId, ref: 'Cart' })
   cart: mongoose.Types.ObjectId;
+
+  @Prop({immutable:true})
+  createdAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,41 +1,118 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { CreateCategoryDTO } from '@libs/shared/dto/create/createCategory.dto';
+import { CreateProductDTO } from '@libs/shared/dto/create/createProduct.dto';
+import { UpdateCategoryDTO } from '@libs/shared/dto/update/updateCategory.dto';
+import { UpdateProductDTO } from '@libs/shared/dto/update/updateProduct.dto';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+
 
 @Injectable()
 export class AdminService {
-  constructor(@Inject('ADMIN_CLIENT') private client: ClientProxy) {}
+  constructor(
+    @Inject('ADMIN_CLIENT') private readonly adminClient: ClientProxy,
+  ) {}
 
-    ///order management
-  async getOrders() {}
-  async getOrder() {}
-  async updateOrder() {}
-  async getPayment() {}
+  // Order methods
+  async getOrdersRange(startIndex: number, endIndex: number) {
+    return firstValueFrom(
+      this.adminClient.send('admin-orders.getRange', { startIndex, endIndex })
+    );
+  }
 
-  //analytics
-  async getRevenueByInterval() {
-    //total revenue or revenue within custom period
+  async getOrder(orderId: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-orders.getOne', orderId)
+    );
   }
-  async getOrdersPerDay() {
-    //return {number of orders per day ,  day} array
+
+  async updateOrder(orderId: string, status: string) {
+      Logger.log(status,orderId)
+    return firstValueFrom(
+      this.adminClient.send('admin-orders.updateStatus', { orderId, status })
+    );
   }
+
   async getRecentOrders(count: number) {
-    // returns the count number of latest orders
-  }
-  async getTotalProductsSold( startDate:Date, endDate:Date){
-    //get total quantity of products  sold 
+    return firstValueFrom(
+      this.adminClient.send('admin-orders.getRecent', count)
+    );
   }
 
-  //product management
-  async createProduct() {}
-  async updateProduct() {}
-  //need to discusss
-  async deleteProduct() {}
+  async getOrdersPerDay(startTime: string, endTime: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-orders.getPerDay', { startTime, endTime })
+    );
+  }
 
-  //category management
-  async createCategory() {}
-  async deleteCategory() {}
-  async updateCategory() {}
-  //user management
-  async getUsers() {}
-  async getUser() {}
+  // Payment methods
+  async getPayment(paymentId: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-payments.getOne', paymentId)
+    );
+  }
+
+  // Analytics methods
+  async getRevenueByInterval(startTime: string, endTime: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-analytics.revenueByInterval', { startTime, endTime })
+    );
+  }
+
+  async getTotalProductsSold(startTime: string, endTime: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-analytics.totalProductsSold', { startTime, endTime })
+    );
+  }
+
+  // Product methods
+  async createProduct(product: CreateProductDTO) {
+    return firstValueFrom(
+      this.adminClient.send('admin-products.create', product)
+    );
+  }
+
+  async updateProduct(product: UpdateProductDTO) {
+    return firstValueFrom(
+      this.adminClient.send('admin-products.update', product)
+    );
+  }
+
+  async deleteProduct(productId: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-products.delete', productId)
+    );
+  }
+
+  // Category methods
+  async createCategory(category: CreateCategoryDTO) {
+    return firstValueFrom(
+      this.adminClient.send('admin-categories.create', category)
+    );
+  }
+
+  async updateCategory(category: UpdateCategoryDTO) {
+    return firstValueFrom(
+      this.adminClient.send('admin-categories.update', category)
+    );
+  }
+
+  async deleteCategory(categoryId: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-categories.delete', categoryId)
+    );
+  }
+
+  // User methods
+  async getUsers(startIndex: number, endIndex: number) {
+    return firstValueFrom(
+      this.adminClient.send('admin-users.getRange', { startIndex, endIndex })
+    );
+  }
+
+  async getUser(id: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-users.getOne', id)
+    );
+  }
 }
