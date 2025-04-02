@@ -12,12 +12,12 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import useCartStore from "../store/CartStore.js";
 import clsx from "clsx";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 
-function ProductCard({ id, imageLinks, name, rating, price , brand }) {
-  const addToCart = useCartStore((state) => state.addToCart);  
+function ProductCard({ id, imageLinks, name, rating, price, brand }) {
+  const { addToCart, cart } = useCartStore();
   const [quantity, setQuantity] = useState(null);
-  
+
   const handleAddtoCart = (event) => {
     event.stopPropagation();
     const product = {
@@ -29,28 +29,32 @@ function ProductCard({ id, imageLinks, name, rating, price , brand }) {
       quantity: quantity ?? 1,
     };
     addToCart(product);
-    setQuantity(useCartStore.getState().cart.find((p) => p.id === id)?.quantity ?? 0);
+    setQuantity(cart.find((p) => p.id === id)?.quantity ?? 0);
   };
   useEffect(() => {
-    setQuantity(useCartStore.getState().cart.find((p) => p.id === id)?.quantity ?? 0);
+    setQuantity(cart.find((p) => p.id === id)?.quantity ?? 0);
   }, []);
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleCardClick = () => {
-    router.push(`/products/product?id=${id}&image=${imageLinks}&name=${name}&rating=${rating}&price=${price}`);
+    router.push(
+      `/products/${id}`
+    );
   };
-
-
 
   return (
     <Card
       className="pb-4 overflow-hidden transition-transform duration-300 ease-in-out 
-                 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
-      <CardHeader className="p-0 pt-0 " >
-        <div className="relative h-50 w-full overflow-hidden" onClick = {handleCardClick}>
+                 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl"
+    >
+      <CardHeader className="p-0 pt-0 ">
+        <div
+          className="relative h-50 w-full overflow-hidden"
+          onClick={handleCardClick}
+        >
           {/* <Image
-            src={image}
+            src={imageLinks}
             alt={name}
             fill
             className="object-cover transition-transform pt-0"
@@ -67,7 +71,8 @@ function ProductCard({ id, imageLinks, name, rating, price , brand }) {
               .map((_, i) => (
                 <Star
                   key={i}
-                  className={clsx('h-4 w-4',
+                  className={clsx(
+                    "h-4 w-4",
                     i < rating
                       ? "fill-orange-400"
                       : "fill-muted text-muted-foreground"
@@ -78,7 +83,10 @@ function ProductCard({ id, imageLinks, name, rating, price , brand }) {
           </div>
           <div className="flex flex-row justify-between items-center">
             <p className="font-bold text-xl"> ₹{price.toFixed(2)} </p>
-            <div className="font-semibold text-sm"> In cart: {quantity ?? 0} </div>
+            <div className="font-semibold text-sm">
+              {" "}
+              In cart: {quantity ?? 0}{" "}
+            </div>
           </div>
         </div>
         <div className="mt-4 bg-green-500 rounded-2xl hover:bg-green-700 ">

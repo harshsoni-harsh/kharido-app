@@ -26,7 +26,7 @@ function Footer() {
           {/* Brand Column */}
           <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-bold text-3xl text-green-500">Kareedo</span>
+              <span className="font-bold text-3xl text-green-500">Khareedo</span>
             </Link>
             <p className="text-muted-foreground text-md">
             We offer the best selection of fresh, organic produce and groceries at competitive 

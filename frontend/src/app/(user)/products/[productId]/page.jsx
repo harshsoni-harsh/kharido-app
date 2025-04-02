@@ -1,13 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import axios from "axios";
-import { useEffect, useState } from "react";
 
 async function fetchProductDetails(productId) {
   try {
@@ -55,13 +53,13 @@ export default async function ProductPage({ params }) {
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="relative aspect-square">
-          <Image
+          {/* <Image
             src={product?.imageLinks || "/placeholder.jpg"}
             alt={product?.name || "Product Image"}
             className="object-cover rounded-lg"
             width={400}
             height={400}
-          />
+          /> */}  
           <Badge className="absolute top-4 right-4 text-sm">
             {product?.category}
           </Badge>
