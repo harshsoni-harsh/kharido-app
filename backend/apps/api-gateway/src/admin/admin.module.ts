@@ -10,7 +10,7 @@ import { AdminController } from './admin.controller';
         name: 'ADMIN_CLIENT',
         transport: Transport.TCP,
         options: {
-          host: process.env.ADMIN_SERVICE_HOST ?? 'localhost',
+          host: process.env.ADMIN_HOST ?? 'localhost',
           port: parseInt(process.env.ADMIN_SERVICE_PORT ?? '3003'),
         },
       },
