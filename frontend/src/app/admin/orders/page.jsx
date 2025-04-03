@@ -275,7 +275,7 @@ export default function Order() {
                         <Badge
                           variant={getStatusColor(order.status?.at(-1)?.property)}
                           className={`${
-                            order.status?.[0]?.property === "delivered"
+                            order.status?.[0]?.property === "Delivered"
                               ? "bg-green-500 text-white"
                               : order.status?.[0]?.property === "Cancelled"
                               ? "bg-red-500 text-white"
