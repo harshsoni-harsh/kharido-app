@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AlertCircle,
   ArrowUpDown,
@@ -47,6 +47,8 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import axios from "axios";
+import { Textarea } from "@/components/ui/textarea";
 
 // Sample inventory data
 const inventory = [
@@ -135,11 +137,33 @@ const inventory = [
 // Get low stock items
 const lowStockItems = inventory.filter((item) => item.stock <= item.minStock);
 
+
 export default function InventoryPage() {
   const [isRestockOpen, setIsRestockOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [category, setCategory] = useState("");
+  const [isCatDialogOpen, setIsCatDialogOpen] = useState(false);
+  const [category, setCategory] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [minStockQuantity , setMinStockQuantity] = useState(50);
+  // const [newCatName, setNewCatName] = useState("");
+  // const  [newCatSku, setNewCatSku] = useState("");
+  // const [newCatDescription, setNewCatDescription] = useState("");
+  // const [newCatSearchTags, setNewCatSearchTags] = useState("");
+  // const [newCatDefaultTax, setNewCatDefaultTax] = useState(18);
+  // const [newCatImageLinks,setNewCatImageLink] = useState("")
+
+  const [categoryData, setCategoryData] = useState({
+    name: '',
+    sku: '',
+    description: '',
+    searchTags: [],
+    defaultTax: 18,
+    imageLinks: [],
+  });
+  
 
   const handleRestock = (item) => {
     setSelectedItem(item);
@@ -154,7 +178,7 @@ export default function InventoryPage() {
   const getStockStatus = (item) => {
     if (item.stock === 0) {
       return { status: "Out of Stock", variant: "destructive" };
-    } else if (item.stock <= item.minStock) {
+    } else if (item.stock <= minStockQuantity) {
       return { status: "Low Stock", variant: "warning" };
     } else {
       return { status: "In Stock", variant: "default" };
@@ -162,10 +186,124 @@ export default function InventoryPage() {
   };
 
   const getStockPercentage = (item) => {
-    const target = Math.max(item.minStock * 2, 100);
+    const target = Math.max(minStockQuantity * 1, 100);
+    console.log(`stock percen: ${Math.min(Math.round((item.stock / target) * 100), 100)}`)
     return Math.min(Math.round((item.stock / target) * 100), 100);
   };
 
+  function getLowStockItemCount(){
+  let count = 0;
+  products.forEach((item) => {
+    if(item.stock<=minStockQuantity ) count++;
+  })  
+  return count;
+}
+
+function getOutOfStockItemCount(){
+  let count = 0;
+  products.forEach((item) => {
+    if(item.stock ==0) count++;
+  })  
+  return count;
+}
+
+const handleInputChange = (name,value) => {
+  
+  setCategoryData(prev => ({ ...prev, [name]: value }));
+};
+
+const handleArrayInputChange = (name,value) => {
+
+  const arrayValue = value.split(' ').filter(item => item.trim() !== '');
+  setCategoryData(prev => ({ ...prev, [name]: arrayValue }));
+};
+
+const handleNumberChange = (name,value) => {
+ 
+  setCategoryData(prev => ({ ...prev, [name]: Number(value) }));
+};
+
+async function createCategory() {
+  try {
+   
+    const res = await axios.post("/api/admin/categories/create", {
+      ...categoryData
+    
+    });
+    
+    console.log(res.data);
+    alert(res.data.message);
+    fetchProduct();
+    
+   
+    setCategoryData({
+      name: '',
+      sku: '',
+      description: '',
+      searchTags: [],
+      defaultTax: 18,
+      imageLinks: [],
+     
+    });
+  } catch (error) {
+    console.error("Error creating category:", error);
+    alert("Failed to create category. Please try again.");
+  }
+}
+
+  async function fetchProduct() {
+    const res = await axios.post("/api/public/get-products-range", {
+      startIndex: 0,
+      endIndex: 11,
+    });
+    console.log(res.data);
+    const activeProducts = res.data.data.products.filter((item)=>{
+       return item.discontinued === "false"
+    })
+    console.log(activeProducts)
+    setProducts(activeProducts);
+    
+    setTotalProducts(res.data.data.pagination.totalCount)
+  }
+
+  async function getCategory() {
+    const res = await axios.post("/api/public/get-categories");
+    console.log(res.data);
+    setCategory(res.data.data.categories);
+  }
+  
+
+  async function updateProduct() {
+    const res = await axios.post("/api/admin/products/update", {
+      _id: selectedProduct._id,
+      imageLinks: selectedProduct.imageLinks,
+      brand: selectedProduct.brand,
+      stock: selectedProduct.stock,
+      description: selectedProduct.description,
+      name: selectedProduct.name,
+      price: selectedProduct.price,
+    });
+    console.log(res.data);
+    alert(res.data.message);
+    setCategory(res.data.data.categories);
+  }
+  useEffect(() => {
+    fetchProduct();
+    getCategory();
+  }, []);
+
+  function getCategoryName(id) {
+    const cat = category.find((item) => item._id === id);
+    console.log(cat);
+    if (cat) return cat.name;
+    else return "unknown";
+  }
+
+  function getDate(item) {
+    return item
+      ? new Date(item).toLocaleDateString().toLowerCase()
+      : "";
+  }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -176,14 +314,14 @@ export default function InventoryPage() {
         <div className="flex items-center gap-2 ">
           <Button
             className="bg-black text-white hover:bg-slate-700"
-            onClick={() => handleCategory("")}
+            onClick={() => setIsCatDialogOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Category
           </Button>
 
           {/* Category Dialog */}
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isCatDialogOpen} onOpenChange={setIsCatDialogOpen}>
             <DialogContent className="sm:max-w-[400px] bg-white">
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
@@ -194,25 +332,94 @@ export default function InventoryPage() {
                     Category
                   </Label>
                   <Input
-                    id="category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    id="category Name"
+                    value={categoryData.name}
+              
+                    onChange={(e) => {handleInputChange("name",e.target.value)
+                       console.log(categoryData)}}
                     placeholder="Enter category name"
                     className="col-span-3"
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="category" className="text-right">
+                    SKU
+                  </Label>
+                  <Input
+                    id="category sku"
+                    value={categoryData.sku}
+              
+                    onChange={(e) => {handleInputChange("sku",e.target.value)
+                      console.log(categoryData)}}
+                    placeholder="Enter SKU"
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="col-span-2">
+                <Label htmlFor="edit-description" className="mb-2 block">
+                  Description
+                </Label>
+                <Textarea
+                  id="edit-description"
+                  placeholder="Enter category description"
+                  defaultValue={categoryData.description}
+                  onChange={(e) => {
+                    handleInputChange("description",e.target.value)
+                  }}
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="edit-description" className="mb-2 block">
+                  Image Links
+                </Label>
+                <Textarea
+                  id="edit-imageLinks"
+                  placeholder="Enter category description"
+                  defaultValue={""}
+                  onChange={(e) => {
+                    handleArrayInputChange("imageLinks",e.target.value)
+                  }}
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="edit-description" className="mb-2 block">
+                  SearchTags
+                </Label>
+                <Textarea
+                  id="edi-searchTags"
+                  placeholder="Enter category description"
+                  defaultValue={""}
+                  onChange={(e) => {
+                    handleArrayInputChange("searchTags",e.target.value)
+                  }}
+                />
+              </div>
+              <div className="col-span-1">
+                <Label htmlFor="edit-description" className="mb-2 block">
+                  Default Tax
+                </Label>
+                <Textarea
+                  id="edit-tax"
+                  placeholder="Enter tax percent"
+                  defaultValue={categoryData.defaultTax}
+                  onChange={(e) => {
+                    handleNumberChange("defaultTax",e.target.value)
+                  }}
+                />
+              </div>
               </div>
               <DialogFooter>
                 <Button
                   variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
+                  onClick={() => setIsCatDialogOpen(false)}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => {
-                    console.log("New Category:", category); // Handle category addition logic here
-                    setIsDialogOpen(false);
+                    console.log("New Category:", category);
+                    createCategory();
+                    setIsCatDialogOpen(false);
                   }}
                 >
                   Add
@@ -242,7 +449,7 @@ export default function InventoryPage() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Low Stock Alert</AlertTitle>
           <AlertDescription>
-            {lowStockItems.length} products are running low on stock and need to
+            {getLowStockItemCount()} products are running low on stock and need to
             be restocked.
           </AlertDescription>
         </Alert>
@@ -252,13 +459,13 @@ export default function InventoryPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Products
+              Total Products (including discontinued)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inventory.length}</div>
+            <div className="text-2xl font-bold">{totalProducts}</div>
             <p className="text-xs text-muted-foreground">
-              Across {new Set(inventory.map((item) => item.category)).size}{" "}
+              Across {category.length}{" "}
               categories
             </p>
           </CardContent>
@@ -270,9 +477,9 @@ export default function InventoryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lowStockItems.length}</div>
+            <div className="text-2xl font-bold">{getLowStockItemCount()}</div>
             <p className="text-xs text-muted-foreground">
-              Items below minimum stock level
+              Items below minimum stock level on this page
             </p>
           </CardContent>
         </Card>
@@ -282,10 +489,10 @@ export default function InventoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {inventory.filter((item) => item.stock === 0).length}
+              {getOutOfStockItemCount()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Items that need immediate attention
+              Items that need immediate attention on this page
             </p>
           </CardContent>
         </Card>
@@ -326,25 +533,25 @@ export default function InventoryPage() {
                 </TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Supplier</TableHead>
-                <TableHead>Last Restocked</TableHead>
+                <TableHead>Last Update</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {inventory.map((item) => {
+              {products.map((item) => {
                 const stockStatus = getStockStatus(item);
                 const stockPercentage = getStockPercentage(item);
 
                 return (
-                  <TableRow key={item.id}>
+                  <TableRow key={item._id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.sku}</TableCell>
-                    <TableCell>{item.category}</TableCell>
+                    <TableCell>{item.sku|| "not set"}</TableCell>
+                    <TableCell>{getCategoryName(item.category[0])}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between text-xs">
                           <span>{item.stock} units</span>
-                          <span>Min: {item.minStock}</span>
+                          <span>Min: {minStockQuantity}</span>
                         </div>
                         <Progress
                           value={stockPercentage}
@@ -372,8 +579,8 @@ export default function InventoryPage() {
                         {stockStatus.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{item.supplier}</TableCell>
-                    <TableCell>{item.lastRestocked}</TableCell>
+                    <TableCell>{item.brand}</TableCell>
+                    <TableCell>{getDate(item.updatedAt || item.createdAt || "")}</TableCell>
                     <TableCell className="text-right bg-white">
                       <Button
                         variant={
@@ -382,7 +589,10 @@ export default function InventoryPage() {
                             : "default"
                         }
                         size="sm"
-                        onClick={() => handleRestock(item)}
+                        onClick={() => {
+                          setSelectedProduct(item);
+                          handleRestock(item);
+                        }}
                       >
                         Restock
                       </Button>
@@ -426,56 +636,14 @@ export default function InventoryPage() {
                   min="1"
                   placeholder="Enter quantity"
                   className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="supplier" className="text-right">
-                  Supplier
-                </Label>
-                <Select
-                  defaultValue={selectedItem.supplier
-                    .toLowerCase()
-                    .replace(/\s+/g, "-")}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="organic-farms-inc">
-                      Organic Farms Inc.
-                    </SelectItem>
-                    <SelectItem value="local-dairy-co">
-                      Local Dairy Co.
-                    </SelectItem>
-                    <SelectItem value="artisan-bakery">
-                      Artisan Bakery
-                    </SelectItem>
-                    <SelectItem value="happy-hens-farm">
-                      Happy Hens Farm
-                    </SelectItem>
-                    <SelectItem value="green-fields-co">
-                      Green Fields Co.
-                    </SelectItem>
-                    <SelectItem value="premium-meats-ltd">
-                      Premium Meats Ltd.
-                    </SelectItem>
-                    <SelectItem value="ocean-fresh-seafood">
-                      Ocean Fresh Seafood
-                    </SelectItem>
-                    <SelectItem value="tropical-imports">
-                      Tropical Imports
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="notes" className="text-right">
-                  Notes
-                </Label>
-                <Input
-                  id="notes"
-                  placeholder="Optional notes"
-                  className="col-span-3"
+                  onChange={(e) => {
+                    console.log(selectedProduct);
+                    try {
+                      selectedProduct.stock = parseInt(e.target.value);
+                    } catch (e) {
+                      console.log("not a number");
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -484,7 +652,14 @@ export default function InventoryPage() {
             <Button variant="outline" onClick={() => setIsRestockOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsRestockOpen(false)}>
+            <Button
+              onClick={() => {
+                updateProduct(selectedProduct);
+                setIsRestockOpen(false);
+                fetchProduct()
+              }}
+              className={"bg-black text-white"}
+            >
               Confirm Restock
             </Button>
           </DialogFooter>
