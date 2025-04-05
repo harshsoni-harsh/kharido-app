@@ -680,26 +680,45 @@ export class AdminService {
   }
   //user management
   async getUsers(startIndex: number, endIndex: number) {
-    if (!startIndex || !endIndex) {
-      throw new BadRequestException(
-        'Both startIndex and endIndex are required',
-      );
+  
+    if (startIndex === undefined || endIndex === undefined) {
+      throw new BadRequestException('Both startIndex and endIndex are required');
     }
+  
+    if (startIndex < 0 || endIndex < 0) {
+      throw new BadRequestException('Indices must be positive numbers');
+    }
+  
     if (startIndex >= endIndex) {
-      throw new BadRequestException('startIndex must be before endIndex');
+      throw new BadRequestException('startIndex must be less than endIndex');
     }
-
-    const users = await this.userModel
-      .find()
-      .sort({ createdAt: 1 })
-      .skip(startIndex)
-      .limit(endIndex)
-      .exec();
-
+  
+    const pageSize = endIndex - startIndex;
+   
+  
+    const [users, totalCount] = await Promise.all([
+      this.userModel
+        .find()
+        .sort({ createdAt: 1 })
+        .skip(startIndex)
+        .limit(pageSize)
+        .select('-password -__v') // Exclude sensitive/uneeded fields
+        .lean()
+        .exec(),
+      this.userModel.countDocuments().exec()
+    ]);
+  
+    Logger.log(`Fetched ${users.length} users from index ${startIndex}`);
+  
     return {
-      statusCode: 200,
-      users: users,
-      count: users.length,
+      statusCode:200,
+      data: users,
+      pagination: {
+        total: totalCount,
+        returned: users.length,
+        currentRange: `${startIndex}-${startIndex + users.length - 1}`,
+        nextStart: startIndex + pageSize < totalCount ? startIndex + pageSize : null
+      }
     };
   }
   async getUser(id: string) {
