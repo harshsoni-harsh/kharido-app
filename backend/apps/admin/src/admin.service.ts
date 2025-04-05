@@ -285,7 +285,11 @@ export class AdminService {
                 $gte: startDate,
                 $lt: endDate,
               },
-              status: 'completed',
+              status: {
+                $not: {
+                  $elemMatch: { property: 'cancelled' }
+                }
+              }
             },
           },
           {

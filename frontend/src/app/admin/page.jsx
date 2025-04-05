@@ -22,6 +22,8 @@ import {
   ShoppingCart,
   Users,
 } from "lucide-react";
+import axios from "axios";
+import { useEffect } from "react";
 
 export default function Page() {
   const chartData = [
@@ -42,6 +44,21 @@ export default function Page() {
       color: "#60a5fa",
     },
   };
+
+  useEffect(()=>{
+    getLastMonthRevenue()
+  }, [])
+
+  async function getLastMonthRevenue(){
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 1);
+    const res = await axios.post("/api/admin/analytics/revenue", {
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString()
+    })
+    console.log(res.data);
+  }
 
   return (
     <>
