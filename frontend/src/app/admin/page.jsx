@@ -75,14 +75,16 @@ export default function Page() {
     getOrderCount();
     getRecentOrders();
     getTotalProductsSold();
+    getTotalUsers();
+    getLast10MonthsRevenue();
   }, []);
 
   async function getTotalUsers(){
     try{
 
-      const res = await axios.post("api/admin/analytics/total-users", {
-      });
-      setTotalUsers(res.data.total||2341)
+      const res = await axios.get("api/admin/analytics/total-users");
+      console.log("total users",res)
+      setTotalUsers(res.data||2341)
     }
     catch(e){
       
@@ -92,7 +94,8 @@ export default function Page() {
   async function getTotalProductsSold() {
     const startDate = new Date();
     const endDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
+    // startDate.setMonth(startDate.getMonth() - 1);
+    startDate.setFullYear(2000);
     const res = await axios.post("api/admin/analytics/products-sold", {
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
@@ -112,13 +115,15 @@ export default function Page() {
   async function getOrderCount() {
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
+    startDate.setFullYear(2000);
+    // startDate.setMonth(startDate.getMonth() - 1);
+    
     const res = await axios.post("/api/admin/orders/interval", {
-      startIndex: 0,
-      endIndex: 10,
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString(),
     });
-    console.log(res.data.metadata.total);
-    setTotalOrderCount(res.data.metadata.total);
+    console.log("order count",res.data);
+    setTotalOrderCount(res.data.totalCount);
   }
 
   async function getLast10MonthsRevenue() {
@@ -166,7 +171,8 @@ export default function Page() {
   async function getLastMonthRevenue() {
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
+    // startDate.setMonth(startDate.getMonth() - 1);
+    startDate.setFullYear(2000);
     const res = await axios.post("/api/admin/analytics/revenue", {
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
@@ -191,7 +197,7 @@ export default function Page() {
           <CardContent>
             <div className="text-2xl font-bold">
               {" "}
-              ₹ {lastMonthRevenue ? lastMonthRevenue : "45,231.89"}
+              ₹ {lastMonthRevenue ? lastMonthRevenue.toFixed(2) : "45,231.89"}
             </div>
             {/* <p className="text-xs text-muted-foreground">
               <span className="text-green-500 flex items-center">
@@ -257,8 +263,8 @@ export default function Page() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+          {/* <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger> */}
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -300,7 +306,7 @@ export default function Page() {
                   <BarChart
                     width={600}
                     height={300}
-                    data={last10MonthsRevenue}
+                    data={last10MonthsRevenue.length? last10MonthsRevenue:dummyLast10MonthRevenue}
                     margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                   >
                     <XAxis

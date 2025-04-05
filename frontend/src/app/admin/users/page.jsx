@@ -27,6 +27,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import axios from "axios"
+import { useEffect } from "react"
 
 // Sample user data
 const users = [
@@ -85,6 +87,23 @@ const users = [
 export default function UsersPage() {
   const [isEditUserOpen, setIsEditUserOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+
+  const[userList, setUserList]= useState([])
+
+  useEffect(()=>{
+    getUsers()
+
+  },[])
+
+  async function getUsers(startIndex=0, endIndex=8) {
+
+    const res = await axios.post("/api/admin/users/range",{
+      startIndex:0,
+      endIndex: 6
+    })
+    console.log(res)
+    
+  }
 
   const handleEditUser = (user) => {
     setSelectedUser(user)
@@ -168,7 +187,7 @@ export default function UsersPage() {
                       </div>
                     </TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
+                    
                     <TableHead>
                       <div className="flex items-center">
                         Orders
@@ -199,9 +218,7 @@ export default function UsersPage() {
                           {user.role}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusColor(user.status)}>{user.status}</Badge>
-                      </TableCell>
+                     
                       <TableCell>{user.orders}</TableCell>
                       <TableCell>{user.joined}</TableCell>
                       <TableCell className="text-right">
