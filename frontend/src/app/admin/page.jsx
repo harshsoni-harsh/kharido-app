@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bar, BarChart } from "recharts";
+import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
   ChartTooltipContent,
@@ -24,8 +24,31 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useEffect } from "react";
+import { useState } from "react";
+
+const dummyLast10MonthRevenue = [
+  { month: "June", total: 119950 },
+  { month: "July", total: 126600 },
+  { month: "August", total: 120400 },
+  { month: "September", total: 137800 },
+  { month: "October", total: 129000 },
+  { month: "November", total: 142300 },
+  { month: "December", total: 110750 },
+  { month: "January", total: 134200 },
+  { month: "February", total: 118500 },
+  { month: "March", total: 125000 }
+];
+
 
 export default function Page() {
+  const [totalOrderCount, setTotalOrderCount] = useState(0);
+  const [totalProductLastMonth, setTotalProductLastMonthCount] = useState(0);
+  const [lastMonthRevenue, setLastMonthRevenue] = useState(0);
+  const [totalUsers,setTotalUsers] = useState(2341);
+  const [last10MonthsRevenue, setLast10MonthRevenue] = useState(
+    dummyLast10MonthRevenue
+  );
+
   const chartData = [
     { month: "January", desktop: 186, mobile: 80 },
     { month: "February", desktop: 305, mobile: 200 },
@@ -45,19 +68,111 @@ export default function Page() {
     },
   };
 
-  useEffect(()=>{
-    getLastMonthRevenue()
-  }, [])
+  const [recentOrders, setRecentOrders] = useState([]);
 
-  async function getLastMonthRevenue(){
+  useEffect(() => {
+    getLastMonthRevenue();
+    getOrderCount();
+    getRecentOrders();
+    getTotalProductsSold();
+  }, []);
+
+  async function getTotalUsers(){
+    try{
+
+      const res = await axios.post("api/admin/analytics/total-users", {
+      });
+      setTotalUsers(res.data.total||2341)
+    }
+    catch(e){
+      
+    }
+
+  }
+  async function getTotalProductsSold() {
+    const startDate = new Date();
+    const endDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 1);
+    const res = await axios.post("api/admin/analytics/products-sold", {
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString(),
+    });
+    console.log("total product sold", res.data);
+    setTotalProductLastMonthCount(res.data.count);
+  }
+
+  async function getRecentOrders() {
+    const res = await axios.post("/api/admin/orders/recent", {
+      count: 5,
+    });
+    console.log(res.data);
+    setRecentOrders(res.data.orders);
+  }
+
+  async function getOrderCount() {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 1);
+    const res = await axios.post("/api/admin/orders/interval", {
+      startIndex: 0,
+      endIndex: 10,
+    });
+    console.log(res.data.metadata.total);
+    setTotalOrderCount(res.data.metadata.total);
+  }
+
+  async function getLast10MonthsRevenue() {
+    const revenues = [];
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    for (let i = 10; i > 0; i--) {
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() - (i - 1));
+      endDate.setDate(1);
+
+      const startDate = new Date(endDate);
+      startDate.setMonth(startDate.getMonth() - 1);
+
+      const res = await axios.post("/api/admin/analytics/revenue", {
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
+      });
+
+      const monthIndex = startDate.getMonth();
+      const monthName = monthNames[monthIndex];
+
+      revenues.push({
+        month: monthName,
+        total: res.data.revenue || 0,
+      });
+    }
+
+    return revenues;
+  }
+
+  async function getLastMonthRevenue() {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - 1);
     const res = await axios.post("/api/admin/analytics/revenue", {
       startTime: startDate.toISOString(),
-      endTime: endDate.toISOString()
-    })
-    console.log(res.data);
+      endTime: endDate.toISOString(),
+    });
+    console.log("Last month revenue", res.data);
+    setLastMonthRevenue(res.data.revenue);
   }
 
   return (
@@ -74,62 +189,67 @@ export default function Page() {
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold">
+              {" "}
+              ₹ {lastMonthRevenue ? lastMonthRevenue : "45,231.89"}
+            </div>
+            {/* <p className="text-xs text-muted-foreground">
               <span className="text-green-500 flex items-center">
                 <ArrowUpIcon className="mr-1 h-4 w-4" />
                 +20.1%
               </span>{" "}
               from last month
-            </p>
+            </p> */}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold">{totalOrderCount}</div>
+            {/* <p className="text-xs text-muted-foreground">
               <span className="text-green-500 flex items-center">
                 <ArrowUpIcon className="mr-1 h-4 w-4" />
                 +12.2%
               </span>{" "}
               from last month
-            </p>
+            </p> */}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Products</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Products Sold Last Month
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,324</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold">{totalProductLastMonth}</div>
+            {/* <p className="text-xs text-muted-foreground">
               <span className="text-green-500 flex items-center">
                 <ArrowUpIcon className="mr-1 h-4 w-4" />
                 +8.4%
               </span>{" "}
               new products this month
-            </p>
+            </p> */}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2,350</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold">{totalUsers}</div>
+            {/* <p className="text-xs text-muted-foreground">
               <span className="text-red-500 flex items-center">
                 <ArrowDownIcon className="mr-1 h-4 w-4" />
                 -4.5%
               </span>{" "}
               from last month
-            </p>
+            </p> */}
           </CardContent>
         </Card>
       </div>
@@ -177,16 +297,25 @@ export default function Page() {
                   config={chartConfig}
                   className="min-h-[200px] w-full"
                 >
-                  <BarChart accessibilityLayer data={chartData}>
+                  <BarChart
+                    width={600}
+                    height={300}
+                    data={last10MonthsRevenue}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+                  >
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 12 }}
+                      angle={-45}
+                      textAnchor="end"
+                    />
+                    <YAxis />
+                    <Tooltip />
                     <Bar
-                      dataKey="desktop"
+                      dataKey="total"
                       fill="var(--color-desktop)"
                       radius={4}
-                    />
-                    <Bar
-                      dataKey="mobile"
-                      fill="var(--color-mobile)"
-                      radius={4}
+                      barSize={20} // Slimmer bars (default is ~30)
                     />
                   </BarChart>
                 </ChartContainer>
@@ -195,25 +324,25 @@ export default function Page() {
             <Card className="col-span-3">
               <CardHeader>
                 <CardTitle>Recent Sales</CardTitle>
-                <CardDescription>
-                  You made 265 sales this month.
-                </CardDescription>
+                {/* <CardDescription>
+              
+                </CardDescription> */}
               </CardHeader>
               <CardContent>
                 <div className="space-y-8">
-                  {[1, 2, 3, 4, 5].map((i, idx) => (
+                  {recentOrders.map((i, idx) => (
                     <div className="flex items-center" key={idx}>
                       <div className="h-9 w-9 rounded-full bg-primary/10"></div>
                       <div className="ml-4 space-y-1">
                         <p className="text-sm font-medium leading-none">
-                          Customer {i}
+                          Customer {idx + 1}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          customer{i}@example.com
+                          {i.email}
                         </p>
                       </div>
                       <div className="ml-auto font-medium">
-                        ${(0.234234 * 100).toFixed(2)}
+                        ₹ {i.totalAmount.netAmount}
                       </div>
                     </div>
                   ))}

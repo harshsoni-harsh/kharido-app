@@ -39,6 +39,11 @@ export class AdminController {
     return this.adminService.getOrdersPerDay(data.startTime, data.endTime);
   }
 
+  @MessagePattern('admin-orders.interval')
+  async getOrdersInterval(@Payload() data: { startTime: string; endTime: string }) {
+    return this.adminService.getOrdersInterval(data.startTime, data.endTime);
+  }
+
   // Payment patterns
   @MessagePattern('admin-payments.getOne')
   async getPayment(@Payload() paymentId: string) {
@@ -56,6 +61,10 @@ export class AdminController {
     return this.adminService.getTotalProductsSold(data.startTime, data.endTime);
   }
 
+  @MessagePattern('admin-analytics.getTotalUsers')
+  async getTotalUsers() {
+    return this.adminService.getTotalUsers();
+  }
   // Product patterns
   @MessagePattern('admin-products.create')
   async createProduct(@Payload() product: CreateProductDTO) {

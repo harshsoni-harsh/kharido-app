@@ -100,6 +100,33 @@ export class AdminService {
     };
   }
 
+  async getOrdersInterval(startTime: string, endTime: string): Promise<{ orders: any[], totalCount: number }> {
+    // Create date objects from the input strings
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+  
+    // Find orders within the time range
+    const orders = await this.orderModel.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }).exec();
+  
+    // Get the count of orders in the same range
+    const totalCount = await this.orderModel.countDocuments({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }).exec();
+  
+    return {
+      orders,
+      totalCount
+    };
+  }
+
   async getOrder(orderId: string) {
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       throw new BadRequestException('Invalid order ID format');
@@ -243,6 +270,11 @@ export class AdminService {
   }
 
   //analytics
+
+  async getTotalUsers(): Promise<number> {
+    return await this.userModel.countDocuments().exec();
+  }
+
   async getRevenueByInterval(
     startTime: string,
     endTime: string,

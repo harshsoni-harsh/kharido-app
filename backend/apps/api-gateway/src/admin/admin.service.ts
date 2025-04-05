@@ -20,9 +20,15 @@ export class AdminService {
     );
   }
 
+
   async getOrder(orderId: string) {
     return firstValueFrom(
       this.adminClient.send('admin-orders.getOne', orderId)
+    );
+  }
+  async getTotalOrders(startTime: string, endTime: string) {
+    return firstValueFrom(
+      this.adminClient.send('admin-orders.interval', { startTime, endTime })
     );
   }
 
@@ -62,6 +68,11 @@ export class AdminService {
   async getTotalProductsSold(startTime: string, endTime: string) {
     return firstValueFrom(
       this.adminClient.send('admin-analytics.totalProductsSold', { startTime, endTime })
+    );
+  }
+  async getTotalUsers(){
+    return firstValueFrom(
+      this.adminClient.send('admin-analytics.getTotalUsers',{})
     );
   }
 

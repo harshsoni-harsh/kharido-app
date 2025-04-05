@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Query, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Param, Query, Logger, Get } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateCategoryDTO } from '@libs/shared/dto/create/createCategory.dto';
 import { CreateProductDTO } from '@libs/shared/dto/create/createProduct.dto';
@@ -32,6 +32,10 @@ export class AdminController {
     return this.adminService.getRecentOrders(data.count);
   }
 
+  @Post('orders/interval')
+  async getTotalOrders(@Body() data: { startTime: string; endTime: string }) {
+    return this.adminService.getTotalOrders(data.startTime,data.endTime);
+  }
   @Post('orders/daily')
   async getOrdersPerDay(@Body() data: { startTime: string; endTime: string }) {
     return this.adminService.getOrdersPerDay(data.startTime, data.endTime);
@@ -48,6 +52,12 @@ export class AdminController {
   async getRevenueByInterval(@Body() data: { startTime: string; endTime: string }) {
     return this.adminService.getRevenueByInterval(data.startTime, data.endTime);
   }
+
+  @Get('analytics/total-users')
+  async getTotalUsers() {
+    return this.adminService.getTotalUsers();
+  }
+
 
   @Post('analytics/products-sold')
   async getTotalProductsSold(@Body() data: { startTime: string; endTime: string }) {
