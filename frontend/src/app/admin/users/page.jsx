@@ -102,6 +102,7 @@ export default function UsersPage() {
       endIndex: 6
     })
     console.log(res)
+    setUserList(res.data.data)
     
   }
 
@@ -166,9 +167,9 @@ export default function UsersPage() {
           <Tabs defaultValue="all">
             <TabsList className="mb-4 bg-zinc-100 text-gray-400">
               <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-black">All Users</TabsTrigger>
-              <TabsTrigger value="customers" className="data-[state=active]:bg-white data-[state=active]:text-black">Customers</TabsTrigger>
+              {/* <TabsTrigger value="customers" className="data-[state=active]:bg-white data-[state=active]:text-black">Customers</TabsTrigger>
               <TabsTrigger value="admins" className="data-[state=active]:bg-white data-[state=active]:text-black">Admins</TabsTrigger>
-              <TabsTrigger value="blocked" className="data-[state=active]:bg-white data-[state=active]:text-black">Blocked</TabsTrigger>
+              <TabsTrigger value="blocked" className="data-[state=active]:bg-white data-[state=active]:text-black">Blocked</TabsTrigger> */}
             </TabsList>
             <TabsContent value="all">
               <Table>
@@ -196,7 +197,7 @@ export default function UsersPage() {
                     </TableHead>
                     <TableHead>
                       <div className="flex items-center">
-                        Joined
+                        Reviews
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </div>
                     </TableHead>
@@ -204,13 +205,13 @@ export default function UsersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user) => (
+                  {userList.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          {user.role === "Admin" ? (
+                          {user.role === "admin" ? (
                             <Shield className="mr-2 h-4 w-4 text-blue-500" />
                           ) : (
                             <User className="mr-2 h-4 w-4 text-gray-500" />
@@ -219,8 +220,8 @@ export default function UsersPage() {
                         </div>
                       </TableCell>
                      
-                      <TableCell>{user.orders}</TableCell>
-                      <TableCell>{user.joined}</TableCell>
+                      <TableCell>{user.orders.length}</TableCell>
+                      <TableCell>{user.reviews.length}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
