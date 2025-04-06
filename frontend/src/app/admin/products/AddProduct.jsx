@@ -35,21 +35,27 @@ export default function AddProduct({
   isAddProductOpen,
   setIsAddProductOpen,
   handleAddProduct,
-  category,
-}) 
-
-{
-  
+  category: categories = [],
+}) {
   const form = useForm({
     defaultValues: {
       name: "",
-      category: [],
+      category: "",
       brand: "",
+      price: 0,
+      stock: 0,
+      description: "",
+      images: [],
     },
   });
 
   const onSubmit = (data) => {
-    handleAddProduct(data);
+    handleAddProduct({
+      ...data,
+      price: Number(data.price),
+      stock: Number(data.stock),
+      category: [data.category]
+    });
   };
 
   return (
@@ -127,21 +133,17 @@ export default function AddProduct({
                   <FormControl>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      defaultValue={categories?.at(0)?._id}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {category.map((item) => (
-                          <SelectItem value={item._id}>{item.name}</SelectItem>
+                        {categories.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.name}
+                          </SelectItem>
                         ))}
-                        {/* <SelectItem value="fruits">Fruits</SelectItem>
-                        <SelectItem value="vegetables">Vegetables</SelectItem>
-                        <SelectItem value="dairy">Dairy</SelectItem>
-                        <SelectItem value="bakery">Bakery</SelectItem>
-                        <SelectItem value="meat">Meat</SelectItem>
-                        <SelectItem value="seafood">Seafood</SelectItem> */}
                       </SelectContent>
                     </Select>
                   </FormControl>

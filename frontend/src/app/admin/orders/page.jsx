@@ -281,7 +281,7 @@ export default function Order() {
                             : "N/A"}
                         </TableCell>
                         <TableCell>
-                          ${order.totalAmount?.netAmount?.toFixed(2) || "0.00"}
+                          ₹{order.totalAmount?.netAmount?.toFixed(2) || "0.00"}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -320,7 +320,12 @@ export default function Order() {
                                 align="end"
                                 className="bg-white"
                               >
-                                <DropdownMenuItem onClick={() => updateOrderStatus(order._id, "cancelled")} className="text-red-600">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    updateOrderStatus(order._id, "cancelled")
+                                  }
+                                  className="text-red-600"
+                                >
                                   Cancel Order
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -370,7 +375,7 @@ export default function Order() {
                                 : "N/A"}
                             </TableCell>
                             <TableCell>
-                              $
+                              ₹
                               {order.totalAmount?.netAmount?.toFixed(2) ||
                                 "0.00"}
                             </TableCell>
@@ -401,21 +406,23 @@ export default function Order() {
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {status !== "cancelled" && <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent
-                                    align="end"
-                                    className="bg-white"
-                                  >
-                                    <DropdownMenuItem className="text-red-600">
-                                      Cancel Order
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>}
+                                {status !== "cancelled" && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                        <ChevronDown className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                      align="end"
+                                      className="bg-white"
+                                    >
+                                      <DropdownMenuItem className="text-red-600">
+                                        Cancel Order
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -519,10 +526,10 @@ export default function Order() {
                             <TableCell>{item.product?.name || "N/A"}</TableCell>
                             <TableCell>{item.quantity || 0}</TableCell>
                             <TableCell>
-                              ${item.price?.toFixed(2) || "0.00"}
+                              ₹{item.price?.toFixed(2) || "0.00"}
                             </TableCell>
                             <TableCell className="text-right">
-                              $
+                              ₹
                               {(
                                 (item.price || 0) * (item.quantity || 0)
                               ).toFixed(2)}
@@ -537,7 +544,7 @@ export default function Order() {
                             Subtotal
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            $
+                            ₹
                             {selectedOrder.totalAmount?.subtotal?.toFixed(2) ||
                               "0.00"}
                           </TableCell>
@@ -550,7 +557,7 @@ export default function Order() {
                             Shipping
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            $
+                            ₹
                             {selectedOrder.totalAmount?.shipping?.toFixed(2) ||
                               "0.00"}
                           </TableCell>
@@ -563,7 +570,7 @@ export default function Order() {
                             Tax
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            $
+                            ₹
                             {selectedOrder.totalAmount?.tax?.toFixed(2) ||
                               "0.00"}
                           </TableCell>
@@ -576,7 +583,7 @@ export default function Order() {
                             Total
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            $
+                            ₹
                             {selectedOrder.totalAmount?.total?.toFixed(2) ||
                               "0.00"}
                           </TableCell>

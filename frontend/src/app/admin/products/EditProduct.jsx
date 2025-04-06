@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
 
 export default function EditProduct({
   isEditProductOpen,
@@ -98,23 +99,24 @@ export default function EditProduct({
                   Category
                 </Label>
                 <Select
+                  multiple
                   defaultValue={
-                    ""
-                    // selectedProduct.category?.toLowerCase()
+                    selectedProduct?.category?.length
+                      ? selectedProduct.category.map((c) => c._id)
+                      : []
                   }
                   onValueChange={(value) => {
-                    console.log("Selected ID:", value);
-                    handleCategories(value); // Call your handler function
+                    handleCategories(value);
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select categories" />
                   </SelectTrigger>
-                  <SelectContent
-                    className="bg-white"
-                  >
+                  <SelectContent className="bg-white">
                     {category.map((item) => (
-                      <SelectItem value={item._id}>{item.name}</SelectItem>
+                      <SelectItem key={item._id} value={item._id}>
+                        {item.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -142,8 +144,6 @@ export default function EditProduct({
                   placeholder="Enter product description"
                   defaultValue={selectedProduct.description}
                   onChange={(e) => {
-                    console.log(selectedProduct);
-
                     selectedProduct.description = e.target.value;
                   }}
                 />
@@ -154,13 +154,15 @@ export default function EditProduct({
                 </Label>
                 <div className="mt-2 flex items-center gap-4">
                   <div className="h-24 w-24 rounded-md border">
-                    {/* <Image
-                      src={selectedProduct.image || "/placeholder.svg"}
-                      alt={selectedProduct.name}
+                    <Image
+                      src={
+                        selectedProduct?.imageLinks?.at(0) ?? "/placeholder.svg"
+                      }
+                      alt={selectedProduct?.name ?? "image"}
                       width={96}
                       height={96}
-                      className="h-full w-full object-cover"
-                    /> */}
+                      className="h-full w-full object-contain"
+                    />
                   </div>
                   <Button variant="outline" className="h-24 w-24">
                     <div className="flex flex-col items-center gap-1">

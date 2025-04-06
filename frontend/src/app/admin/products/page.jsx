@@ -10,6 +10,7 @@ import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
 import ExportData from "./ExportData";
 import ProductTable from "./ProductTable";
+import { toast } from "sonner";
 
 export default function Products() {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -19,8 +20,8 @@ export default function Products() {
   const [categories, setCategories] = useState([]);
 
   const handleAddProduct = async (product) => {
-    if (!product.name || !product.brand) {
-      alert("Name and brand is required");
+    if (!product.name || !product.brand || !product.category) {
+      toast.error("Name, brand and category is required");
       return;
     }
 
@@ -30,9 +31,10 @@ export default function Products() {
       if (data.statusCode !== 201) {
         throw new Error(data);
       }
+      toast.success("Product added successfully");
       setIsAddProductOpen(false);
     } catch (err) {
-      alert("Error adding product. Check console.");
+      toast.error("Error adding product. Check console.");
       console.log(err);
     }
   };
@@ -40,7 +42,7 @@ export default function Products() {
   async function fetchProduct() {
     const res = await axios.post("/api/public/get-products-range", {
       startIndex: 0,
-      endIndex: 11,
+      endIndex: 1000,
     });
     setProducts(res.data.data.products);
   }
@@ -69,10 +71,10 @@ export default function Products() {
     setCategories(res.data.data.categories);
   }
 
-  const handleCategories = (id) => {
-    // if(!selectedProduct) return;
-    // if (!!selectedProduct.categories.find((item) => item === id)) {
-    // }
+  const handleCategories = async (categories) => {
+    await axios.post("/api/admin/products/update", {
+      category: categories ?? [],
+    });
   };
 
   const deleteProduct = async (productId) => {
@@ -119,8 +121,8 @@ export default function Products() {
       </div>
 
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between mt-5">
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Product Inventory</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -129,7 +131,9 @@ export default function Products() {
           </div>
         </CardHeader>
         <CardContent>
-          <ProductTable {...{ products, deleteProduct, handleEditProduct, categories }} />
+          <ProductTable
+            {...{ products, deleteProduct, handleEditProduct, categories }}
+          />
         </CardContent>
       </Card>
     </>
