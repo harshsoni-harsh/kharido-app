@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import axios from "axios";
 
-async function fetchProductDetails(productId) {
+async function fetchProductDetails(categoryId) {
   try {
     const res = await axios.post(
-      "/api/public/get-product",
-      {productId}
+      "/api/public/get-category-products",
+      {categoryId}
     );
     return res.data.data;
   } catch (error) {
@@ -39,7 +38,7 @@ export default async function ProductPage({ params }) {
     );
   }
 
-  const minQuantity = 1; // 🔹 Define minQuantity
+  const minQuantity = 1;
 
   return (
     <main className="container mx-auto py-8 px-4">

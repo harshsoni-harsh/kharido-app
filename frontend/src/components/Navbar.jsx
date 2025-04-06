@@ -48,7 +48,7 @@ export default function Navbar() {
           <input
             type="text"
             placeholder="Search"
-            className="h-10 w-[24rem] md:w-[30rem] px-4 border border-gray-300 hover:border-gray-400 rounded-xl focus:outline-none 
+            className="h-10 w-full max-w-[24rem] md:max-w-[30rem] px-4 border border-gray-300 hover:border-gray-400 rounded-xl focus:outline-none 
               focus:ring-2 focus:ring-gray-300 bg-white shadow-sm"
           />
 

@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { handleResponse } from '../utils';
 
 @Injectable()
 export class PublicService {
@@ -10,9 +11,10 @@ export class PublicService {
       ) {}
     
       async getProduct(productId: string) {
-        return firstValueFrom(
+        const res = await firstValueFrom(
           this.client.send('public_getProduct',  productId )
-        );
+        ) as RPCResponse;
+        return handleResponse(res);
       }
     
       async getCategories() {

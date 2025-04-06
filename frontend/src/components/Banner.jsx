@@ -4,7 +4,7 @@ import React from "react";
 function Banner() {
   return (
     <>
-      <div className="max-w-screen-xl container mx-auto md:px-20 px-4 flex flex-col md:flex-row  dark:bg-slat-900 dark:text-white">
+      <div className="max-w-screen container mx-auto md:px-20 px-4 flex flex-col md:flex-row dark:bg-slate-900 dark:text-white">
         <div className="w-full order-2 md:order-1 md:w-1/2  mt-12 md:mt-48">
           <div className="space-y-2">
             <p className="text-green-500 font-semi-bold">FRESH & ORGANIC</p>

@@ -38,31 +38,28 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
   const router = useRouter();
 
   const handleCardClick = () => {
-    router.push(
-      `/products/${id}`
-    );
+    router.push(`/products/${id}`);
   };
 
   return (
-    <Card
-      className="pb-4 overflow-hidden transition-transform duration-300 ease-in-out 
-                 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl"
-    >
-      <CardHeader className="p-0 pt-0 ">
+    <Card onClick={handleCardClick} className="overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1 hover:shadow-2xl border-zinc-200 h-full">
+      <CardHeader className="p-0">
         <div
-          className="relative h-50 w-full overflow-hidden"
-          onClick={handleCardClick}
+          className="relative h-50 w-full max-h-50"
         >
-          {/* <Image
-            src={imageLinks}
-            alt={name}
-            fill
-            className="object-cover transition-transform pt-0"
-            priority
-          /> */}
+          {imageLinks?.length && (
+            <Image
+              src={imageLinks[0]}
+              alt={name}
+              width={300}
+              height={300}
+              className="object-contain transition-transform pt-0 h-full mx-auto"
+              priority
+            />
+          )}
         </div>
       </CardHeader>
-      <CardContent className="p-4 pb-0 pt-0">
+      <CardContent className={"h-full"}>
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">{name}</h3>
           <div className="flex items-center gap-2">
@@ -81,20 +78,22 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
               ))}
             <span className="text-sm text-muted-foreground">({rating}/5)</span>
           </div>
-          <div className="flex flex-row justify-between items-center">
+          <div className="flex flex-row justify-between items-center flex-wrap">
             <p className="font-bold text-xl"> ₹{price.toFixed(2)} </p>
             <div className="font-semibold text-sm">
-              {" "}
-              In cart: {quantity ?? 0}{" "}
+              In cart: {quantity ?? 0}
             </div>
           </div>
         </div>
-        <div className="mt-4 bg-green-500 rounded-2xl hover:bg-green-700 ">
-          <Button className="w-full" onClick={handleAddtoCart}>
-            Add to Cart
-          </Button>
-        </div>
       </CardContent>
+      <CardFooter className={"mb-4"}>
+        <Button
+          className="w-full bg-green-500 rounded-2xl hover:bg-green-700 mt-full cursor-pointer"
+          onClick={handleAddtoCart}
+        >
+          Add to Cart
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

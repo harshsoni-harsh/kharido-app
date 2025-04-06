@@ -4,32 +4,32 @@ import axios from "axios";
 const usePublicStore = create((set, get) => ({
   categories: [],
   products: {},
+  loading: false,
 
   fetchCategories: async function () {
+    set({ loading: true });
     try {
       const res = await axios.post(`/api/public/get-categories`, {});
       const categories = res.data.data.categories;
       set({ categories });
     } catch (error) {
-      //   console.error("Error fetching categories:", error);
+      console.error("Error fetching categories:", error);
     }
+    set({ loading: false });
   },
 
   fetchAllProducts: async function () {
-    const {categories, fetchProducts} = get();
-    const products = {};
+    set({ loading: true });
+    const { categories, fetchProducts } = get();
     await Promise.all(
-      categories?.map(async (category) => {
-        const fetchedProducts = await fetchProducts(category._id);
-        products[category._id] = fetchedProducts;
-      })
+      categories.map(async (category) => await fetchProducts(category._id))
     );
-    set({ products });
+    set({ loading: false });
   },
 
   fetchProducts: async (categoryId) => {
     try {
-      const res = await axios.post(`/api/public/get-categories`, {
+      const res = await axios.post(`/api/public/get-category-products`, {
         categoryId: categoryId,
       });
 
@@ -40,7 +40,7 @@ const usePublicStore = create((set, get) => ({
         },
       }));
     } catch (error) {
-      //   console.error("Error fetching products:", error);
+      console.error("Error fetching products:", error);
     }
   },
 }));
