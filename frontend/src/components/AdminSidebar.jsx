@@ -47,16 +47,11 @@ const items = [
     url: "/admin/inventory",
     icon: Box,
   },
-  {
-    title: "Reports",
-    url: "/admin/reports",
-    icon: BarChart3,
-  },
-  {
-    title: "Settings",
-    url: "/admin/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Settings",
+  //   url: "/admin/settings",
+  //   icon: Settings,
+  // },
 ];
 
 export function AdminSidebar() {

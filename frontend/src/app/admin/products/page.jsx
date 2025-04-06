@@ -16,16 +16,13 @@ export default function Products() {
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState([]);
-  const [category, setCategory] = useState([]);
-
+  const [categories, setCategories] = useState([]);
 
   const handleAddProduct = async (product) => {
     if (!product.name || !product.brand) {
       alert("Name and brand is required");
       return;
     }
-
-    console.dir( product );
 
     try {
       const { data } = await axios.post("/api/admin/products/create", product);
@@ -45,14 +42,12 @@ export default function Products() {
       startIndex: 0,
       endIndex: 11,
     });
-    console.log(res.data);
     setProducts(res.data.data.products);
   }
 
   async function getCategory() {
     const res = await axios.post("/api/public/get-categories");
-    console.log(res.data);
-    setCategory(res.data.data.categories);
+    setCategories(res.data.data.categories);
   }
 
   useEffect(() => {
@@ -70,9 +65,8 @@ export default function Products() {
       name: selectedProduct.name,
       price: selectedProduct.price,
     });
-    console.log(res.data);
     alert(res.data.message);
-    setCategory(res.data.data.categories);
+    setCategories(res.data.data.categories);
   }
 
   const handleCategories = (id) => {
@@ -85,15 +79,14 @@ export default function Products() {
     const res = await axios.post("/api/admin/products/delete", {
       productId,
     });
-    alert(res.data.message)
+    alert(res.data.message);
     await fetchProduct();
   };
 
-  const handleEditProduct=  (product) =>{
+  const handleEditProduct = (product) => {
     setSelectedProduct(product);
-
     setIsEditProductOpen(true);
-  }
+  };
 
   return (
     <>
@@ -104,10 +97,22 @@ export default function Products() {
         </div>
         <div className="flex items-center gap-2 ">
           <AddProduct
-            {...{ isAddProductOpen, setIsAddProductOpen, handleAddProduct , category}}
+            {...{
+              isAddProductOpen,
+              setIsAddProductOpen,
+              handleAddProduct,
+              category: categories,
+            }}
           />
           <EditProduct
-            {...{ isEditProductOpen, setIsEditProductOpen, selectedProduct ,category , updateProduct,handleCategories }}
+            {...{
+              isEditProductOpen,
+              setIsEditProductOpen,
+              selectedProduct,
+              category: categories,
+              updateProduct,
+              handleCategories,
+            }}
           />
           <ExportData />
         </div>
@@ -124,7 +129,7 @@ export default function Products() {
           </div>
         </CardHeader>
         <CardContent>
-          <ProductTable {...{ products, deleteProduct, handleEditProduct }} />
+          <ProductTable {...{ products, deleteProduct, handleEditProduct, categories }} />
         </CardContent>
       </Card>
     </>

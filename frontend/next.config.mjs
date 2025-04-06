@@ -17,6 +17,11 @@ const nextConfig = {
         hostname: 'm.media-amazon.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com/dvjxfsqqx',
+        pathname: '/**',
+      },
     ],
   }
 };

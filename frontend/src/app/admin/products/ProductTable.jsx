@@ -13,14 +13,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import ExportData from "./ExportData";
-import EditProduct from "./EditProduct";
 
 export default function ProductTable({
   products,
+  categories,
   deleteProduct,
   handleEditProduct,
 }) {
+  function renderCategories(categoryIds) {
+    const categoryNames = categoryIds.map(id => categories.find(category => category._id === id)?.name)
+    return categoryNames.join(" ")
+  }
   return (
     <Table>
       <TableHeader>
@@ -56,25 +59,24 @@ export default function ProductTable({
       </TableHeader>
       <TableBody>
         {products.map((product, idx) => {
-          
-          if(product.discontinued==="true")
-          {
+          if (product.discontinued === "true") {
             return;
           }
           return (
             <TableRow key={idx}>
               <TableCell>
                 <Image
-                  src={product.imageLinks || "/placeholder.svg"}
+                  src={product?.imageLinks?.at(0) ?? "/placeholder.svg"}
                   alt={product.name}
                   width={50}
                   height={50}
-                  className="rounded-md"
+                  className="rounded-md size-auto"
+                  priority
                 />
               </TableCell>
               <TableCell className="font-medium">{product.name}</TableCell>
-              <TableCell>₹{product.price}</TableCell>x
-              <TableCell>{product.category}</TableCell>
+              <TableCell>₹{product.price}</TableCell>
+              <TableCell className={'truncate'}>{renderCategories(product.category)}</TableCell>
               <TableCell>{product.stock}</TableCell>
               <TableCell>
                 <Badge

@@ -2,25 +2,19 @@
 
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  CardContent, CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import {
-  ChartContainer,
-  ChartTooltipContent,
-  ChartTooltip,
+  ChartContainer
 } from "@/components/ui/chart";
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
   IndianRupee,
   Package,
   ShoppingCart,
-  Users,
+  Users
 } from "lucide-react";
 import axios from "axios";
 import { useEffect } from "react";
@@ -36,15 +30,14 @@ const dummyLast10MonthRevenue = [
   { month: "December", total: 110750 },
   { month: "January", total: 134200 },
   { month: "February", total: 118500 },
-  { month: "March", total: 125000 }
+  { month: "March", total: 125000 },
 ];
-
 
 export default function Page() {
   const [totalOrderCount, setTotalOrderCount] = useState(0);
   const [totalProductLastMonth, setTotalProductLastMonthCount] = useState(0);
   const [lastMonthRevenue, setLastMonthRevenue] = useState(0);
-  const [totalUsers,setTotalUsers] = useState(2341);
+  const [totalUsers, setTotalUsers] = useState(2341);
   const [last10MonthsRevenue, setLast10MonthRevenue] = useState(
     dummyLast10MonthRevenue
   );
@@ -79,17 +72,12 @@ export default function Page() {
     getLast10MonthsRevenue();
   }, []);
 
-  async function getTotalUsers(){
-    try{
-
+  async function getTotalUsers() {
+    try {
       const res = await axios.get("api/admin/analytics/total-users");
-      console.log("total users",res)
-      setTotalUsers(res.data||2341)
-    }
-    catch(e){
-      
-    }
-
+      console.log("total users", res);
+      setTotalUsers(res.data || 2341);
+    } catch (e) {}
   }
   async function getTotalProductsSold() {
     const startDate = new Date();
@@ -117,12 +105,12 @@ export default function Page() {
     const startDate = new Date();
     startDate.setFullYear(2000);
     // startDate.setMonth(startDate.getMonth() - 1);
-    
+
     const res = await axios.post("/api/admin/orders/interval", {
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
     });
-    console.log("order count",res.data);
+    console.log("order count", res.data);
     setTotalOrderCount(res.data.totalCount);
   }
 
@@ -190,7 +178,7 @@ export default function Page() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -306,7 +294,11 @@ export default function Page() {
                   <BarChart
                     width={600}
                     height={300}
-                    data={last10MonthsRevenue.length? last10MonthsRevenue:dummyLast10MonthRevenue}
+                    data={
+                      last10MonthsRevenue.length
+                        ? last10MonthsRevenue
+                        : dummyLast10MonthRevenue
+                    }
                     margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                   >
                     <XAxis

@@ -112,9 +112,6 @@ export default function EditProduct({
                   </SelectTrigger>
                   <SelectContent
                     className="bg-white"
-          
-                    
-                    
                   >
                     {category.map((item) => (
                       <SelectItem value={item._id}>{item.name}</SelectItem>
