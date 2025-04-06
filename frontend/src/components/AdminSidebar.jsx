@@ -2,6 +2,14 @@
 
 import Link from "next/link";
 import {
+  Box,
+  Package,
+  ShoppingCart,
+  Users, LayoutDashboard
+} from "lucide-react";
+import { usePathname } from "next/navigation";
+
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -10,16 +18,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-import {
-  BarChart3,
-  Box,
-  Package,
-  ShoppingCart,
-  Users,
-  Settings,
-  LayoutDashboard,
-} from "lucide-react";
 
 const items = [
   {
@@ -55,19 +53,20 @@ const items = [
 ];
 
 export function AdminSidebar() {
+  const pathname = usePathname();
   return (
     <Sidebar>
       <SidebarHeader className="h-14 items-center border-b px-4 justify-center">
         <Link href="/admin" className="flex items-center gap-2 font-semibold">
           <Package className="h-6 w-6"/>
-          <span>GroceryAdmin</span>
+          <span>Grocery Admin</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={item.active}>
+              <SidebarMenuButton asChild isActive={item.url === pathname}>
                 <Link href={item.url}>
                   <item.icon className="h-5 w-5" />
                   <span>{item.title}</span>

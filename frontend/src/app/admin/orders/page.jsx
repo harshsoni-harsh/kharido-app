@@ -1,14 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Download,
-  Eye,
-  Filter,
-  Search,
-} from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { ArrowUpDown, ChevronDown, Download, Eye, Search } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,65 +40,90 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import axios from "axios";
-
-// Sample order data
+import Loader from "@/components/Loader";
 
 export default function Order() {
   const [isViewOrderOpen, setIsViewOrderOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [totalorder, setTotalOrder] = useState([]);
-  const [filteredOrder, setFilterOrder] = useState([]);
-  const [updateStatus, setUpdateStatus] = useState([]);
-
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [updateStatus, setUpdateStatus] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     async function fetchOrders() {
       try {
+        setIsLoading(true);
         const res = await axios.post("/api/admin/orders/range", {
           startIndex: 0,
-          endIndex: 3,
+          endIndex: 50,
         });
-        console.log(res.data);
-        setTotalOrder(res.data.orders);
-        setFilterOrder(res.data.orders);
+        setTotalOrder(res.data.orders || []);
       } catch (err) {
-        console.log(err);
+        console.error("Error fetching orders:", err);
+        toast.error("Failed to load orders");
+      } finally {
+        setIsLoading(false);
       }
     }
-
     fetchOrders();
   }, []);
 
-  async function UpdateOrderStatus(orderId, status) {
-    try {
-      console.log(orderId,status)
-      const res = await axios.post("/api/admin/orders/update", {
-        orderId: orderId,
-        status: status,
-      });
-      alert(res.data.statusCode)
-      console.log(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  }
+  const filteredOrder = useMemo(() => {
+    if (!searchQuery) return totalorder;
+
+    return totalorder.filter((order) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        (order._id?.toLowerCase() || "").includes(query) ||
+        (order.email?.toLowerCase() || "").includes(query) ||
+        (order.paymentMode?.toLowerCase() || "").includes(query) ||
+        (order.totalAmount?.netAmount?.toString() || "").includes(query) ||
+        (order.createdAt
+          ? new Date(order.createdAt).toLocaleDateString().toLowerCase()
+          : ""
+        ).includes(query) ||
+        order.status?.at(-1)?.property?.toLowerCase().includes(query)
+      );
+    });
+  }, [totalorder, searchQuery]);
+
+  const ordersByStatus = useMemo(
+    () => ({
+      processing: totalorder.filter(
+        (order) =>
+          order.status?.at(-1)?.property?.toLowerCase() === "processing"
+      ),
+      shipped: totalorder.filter(
+        (order) => order.status?.at(-1)?.property?.toLowerCase() === "shipped"
+      ),
+      delivered: totalorder.filter(
+        (order) => order.status?.at(-1)?.property?.toLowerCase() === "delivered"
+      ),
+      cancelled: totalorder.filter(
+        (order) => order.status?.at(-1)?.property?.toLowerCase() === "cancelled"
+      ),
+    }),
+    [totalorder]
+  );
 
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
+    setUpdateStatus(order.status?.at(-1)?.property?.toLowerCase() || "");
     setIsViewOrderOpen(true);
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Delivered":
+    if (!status) return "secondary";
+    switch (status.toLowerCase()) {
+      case "delivered":
         return "default";
-      case "Shipped":
+      case "shipped":
         return "info";
-      case "Processing":
+      case "processing":
         return "warning";
-      case "Cancelled":
+      case "cancelled":
         return "destructive";
       default:
         return "secondary";
@@ -111,40 +131,50 @@ export default function Order() {
   };
 
   const getPaymentColor = (payment) => {
-    switch (payment) {
-      case "Success":
+    if (!payment) return "secondary";
+    switch (payment.toLowerCase()) {
+      case "success":
         return "default";
-      case "Pending":
+      case "pending":
         return "warning";
-      case "Refunded":
+      case "refunded":
         return "destructive";
       default:
         return "secondary";
     }
   };
 
-  const [searchQuery, setSearchQuery] = useState("");
+  async function updateOrderStatus(orderId, status) {
+    if (!orderId || !status) return;
 
-  function filterOrders() {
-    return totalorder.filter((order) => {
-      const query = searchQuery.toLowerCase();
+    try {
+      setIsUpdating(true);
+      const res = await axios.post("/api/admin/orders/update", {
+        orderId,
+        status: status.charAt(0).toUpperCase() + status.slice(1),
+      });
 
-      return (
-        (order.id?.toLowerCase() || "").includes(query) ||
-        (order._id?.toLowerCase() || "").includes(query) ||
-        (order.email?.toLowerCase() || "").includes(query) ||
-        (order.paymentMode?.toLowerCase() || "").includes(query) ||
-        (order.price?.toString() || "").includes(query) ||
-        (order.createdAt
-          ? new Date(order.createdAt).toLocaleDateString().toLowerCase()
-          : ""
-        ).includes(query) ||
-        (Array.isArray(order.status) &&
-          order.status.some((s) => s.property?.toLowerCase().includes(query)))
-      );
-    });
+      if (res.data.success) {
+        toast.success("Order status updated");
+        // Refresh orders
+        const refreshRes = await axios.post("/api/admin/orders/range", {
+          startIndex: 0,
+          endIndex: 50,
+        });
+        setTotalOrder(refreshRes.data.orders || []);
+        setIsViewOrderOpen(false);
+      } else {
+        toast.error(res.data.message || "Failed to update order");
+      }
+    } catch (err) {
+      console.error("Error updating order:", err);
+      toast.error("Failed to update order");
+    } finally {
+      setIsUpdating(false);
+    }
   }
-  console.log("Search Quary", searchQuery);
+
+  if (isLoading) return <Loader />;
 
   return (
     <div className="flex flex-col gap-6">
@@ -172,8 +202,8 @@ export default function Order() {
       </div>
 
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between mt-5">
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Order Management</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -181,11 +211,7 @@ export default function Order() {
                 placeholder="Search orders..."
                 className="pl-8"
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setFilterOrder(filterOrders());
-                  console.log(filteredOrder);
-                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
@@ -221,8 +247,8 @@ export default function Order() {
                 Cancelled
               </TabsTrigger>
             </TabsList>
-            {/* Content for all Orders section */}
 
+            {/* All Orders Tab */}
             <TabsContent value="all">
               <Table>
                 <TableHeader>
@@ -233,608 +259,352 @@ export default function Order() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        Customer Email
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        Date
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center">
-                        Total
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </TableHead>
+                    <TableHead>Customer Email</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredOrder.map((order) => (
-                    <TableRow key={order.id || "N/A"}>
-                      <TableCell className="font-medium">
-                        {order._id || "N/A"}
-                      </TableCell>
-                      <TableCell>{order.email || "N/A"}</TableCell>
-                      <TableCell>
-                        {order.createdAt
-                          ? new Date(order.createdAt).toLocaleDateString()
-                          : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        ${order.totalAmount.netAmount || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getStatusColor(order.status?.at(-1)?.property)}
-                          className={`${
-                            order.status?.[0]?.property === "Delivered"
-                              ? "bg-green-500 text-white"
-                              : order.status?.[0]?.property === "Cancelled"
-                              ? "bg-red-500 text-white"
-                              : order.status?.[0]?.property === "Processing"
-                              ? "bg-black text-white"
-                              : order.status?.[0]?.property === "Shipped"
-                              ? "bg-blue-500 text-white"
-                              : ""
-                          }`}
-                        >
-                          {order.status?.at(-1)?.property || "Unknown"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getPaymentColor(order.paymentMode)}
-                          className={` ${
-                            order.paymentMode === "Credit Card"
-                              ? "bg-black text-white"
-                              : order.paymentMode === "Debit Card"
-                              ? "bg-green-500 text-white"
-                              : order.paymentMode === "Upi"
-                              ? "bg-orange-500 text-white"
-                              : order.paymentMode === "Paypal"
-                              ? "bg-blue-600 text-white"
-                              : ""
-                          }
-                        `}
-                        >
-                          {order.paymentMode}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>{ handleViewOrder(order)}}
+                  {filteredOrder.length > 0 ? (
+                    filteredOrder.map((order) => (
+                      <TableRow key={order._id || `order-${Math.random()}`}>
+                        <TableCell className="font-medium">
+                          {order._id || "N/A"}
+                        </TableCell>
+                        <TableCell>{order.email || "N/A"}</TableCell>
+                        <TableCell>
+                          {order.createdAt
+                            ? new Date(order.createdAt).toLocaleDateString()
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          ${order.totalAmount?.netAmount?.toFixed(2) || "0.00"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={getStatusColor(
+                              order.status?.at(-1)?.property
+                            )}
+                            className="capitalize"
                           >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <ChevronDown className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="bg-white"
+                            {order.status?.at(-1)?.property || "Unknown"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={getPaymentColor(order.paymentMode)}
+                            className="capitalize"
+                          >
+                            {order.paymentMode || "Unknown"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleViewOrder(order)}
                             >
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem>Update Status</DropdownMenuItem>
-                              <DropdownMenuItem>
-                                Process Refund
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>Send Invoice</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
-                                Cancel Order
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="bg-white"
+                              >
+                                <DropdownMenuItem onClick={() => updateOrderStatus(order._id, "cancelled")} className="text-red-600">
+                                  Cancel Order
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        No orders found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </TabsContent>
 
-            {/* Content for only with status =  "Processing" section */}
-
-            <TabsContent value="processing">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer Email</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {totalorder
-                    .filter(
-                      (order) => order.status.at(-1).property === "Processing"
-                    )
-                    .map((order) => (
-                      <TableRow key={order._id}>
-                        <TableCell className="font-medium">
-                          {order._id}
-                        </TableCell>
-                        <TableCell>{order.email}</TableCell>
-                        <TableCell>
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>${order.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={getStatusColor(order.status[0].property)}
-                            className={`${
-                              order.status === "Delivered"
-                                ? "bg-green-500 text-white"
-                                : order.status === "Cancelled"
-                                ? "bg-red-500 text-white"
-                                : "bg-white text-black"
-                            }`}
-                          >
-                            {order.status[0].property}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getPaymentColor(order.paymentMode)}>
-                            {order.paymentMode}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewOrder(order)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <ChevronDown className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                  Update Status
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Process Refund
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Send Invoice
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
-                                  Cancel Order
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
+            {/* Status-specific tabs */}
+            {["processing", "shipped", "delivered", "cancelled"].map(
+              (status) => (
+                <TabsContent key={status} value={status}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer Email</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
-
-            {/* Content for only with status =  "Shipped" section */}
-
-            <TabsContent value="shipped">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer Email</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {totalorder
-                    .filter((order) => order.status[0].property === "Shipped")
-                    .map((order) => (
-                      <TableRow key={order._id}>
-                        <TableCell className="font-medium">
-                          {order._id}
-                        </TableCell>
-                        <TableCell>{order.email}</TableCell>
-                        <TableCell>
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>${order.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={getStatusColor(order.status[0].property)}
-                            className={`${
-                              order.status === "Delivered"
-                                ? "bg-green-500 text-white"
-                                : order.status === "Cancelled"
-                                ? "bg-red-500 text-white"
-                                : "bg-white text-black"
-                            }`}
-                          >
-                            {order.status[0].property}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getPaymentColor(order.paymentMode)}>
-                            {order.paymentMode}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewOrder(order)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <ChevronDown className="h-4 w-4" />
+                    </TableHeader>
+                    <TableBody>
+                      {ordersByStatus[status].length > 0 ? (
+                        ordersByStatus[status].map((order) => (
+                          <TableRow key={order._id || `order-${Math.random()}`}>
+                            <TableCell className="font-medium">
+                              {order._id || "N/A"}
+                            </TableCell>
+                            <TableCell>{order.email || "N/A"}</TableCell>
+                            <TableCell>
+                              {order.createdAt
+                                ? new Date(order.createdAt).toLocaleDateString()
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              $
+                              {order.totalAmount?.netAmount?.toFixed(2) ||
+                                "0.00"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={getStatusColor(
+                                  order.status?.at(-1)?.property
+                                )}
+                                className="capitalize"
+                              >
+                                {order.status?.at(-1)?.property || "Unknown"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={getPaymentColor(order.paymentMode)}
+                                className="capitalize"
+                              >
+                                {order.paymentMode || "Unknown"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleViewOrder(order)}
+                                >
+                                  <Eye className="h-4 w-4" />
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                  Update Status
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Process Refund
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Send Invoice
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
-                                  Cancel Order
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
-
-            {/* Content for only with status =  "Delivered" section */}
-
-            <TabsContent value="delivered">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer Email</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {totalorder
-                    .filter((order) => order.status.at(-1).property === "delivered")
-                    .map((order) => (
-                      <TableRow key={order._id}>
-                        <TableCell className="font-medium">
-                          {order._id}
-                        </TableCell>
-                        <TableCell>{order.email}</TableCell>
-                        <TableCell>
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>${order.totalAmount.netAmount}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={getStatusColor(order.status.at(-1).property)}
-                            className={`${
-                              order.status === "delivered"
-                                ? "bg-green-500 text-white"
-                                : order.status === "Cancelled"
-                                ? "bg-red-500 text-white"
-                                : "bg-white text-black"
-                            }`}
-                          >
-                            {order.status.at(-1).property}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getPaymentColor(order.paymentMode)}>
-                            {order.paymentMode}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewOrder(order)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <ChevronDown className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                  Update Status
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Process Refund
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Send Invoice
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
-                                  Cancel Order
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
-
-            {/* Content for only with status =  "Cancelled" section */}
-
-            <TabsContent value="cancelled">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer Email</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {totalorder
-                    .filter((order) => order.status[0].property === "Cancelled")
-                    .map((order) => (
-                      <TableRow key={order._id}>
-                        <TableCell className="font-medium">
-                          {order._id}
-                        </TableCell>
-                        <TableCell>{order.email}</TableCell>
-                        <TableCell>
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>${order.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={getStatusColor(order.status[0].property)}
-                            className={`${
-                              order.status === "Delivered"
-                                ? "bg-green-500 text-white"
-                                : order.status === "Cancelled"
-                                ? "bg-red-500 text-white"
-                                : "bg-white text-black"
-                            }`}
-                          >
-                            {order.status[0].property}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getPaymentColor(order.paymentMode)}>
-                            {order.paymentMode}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewOrder(order)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <ChevronDown className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                  Update Status
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Process Refund
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Send Invoice
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">
-                                  Cancel Order
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TabsContent>
+                                {status !== "cancelled" && <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align="end"
+                                    className="bg-white"
+                                  >
+                                    <DropdownMenuItem className="text-red-600">
+                                      Cancel Order
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8">
+                            No {status} orders found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+              )
+            )}
           </Tabs>
         </CardContent>
       </Card>
 
+      {/* Order Details Dialog */}
       <Dialog open={isViewOrderOpen} onOpenChange={setIsViewOrderOpen}>
-        <DialogContent className="sm:max-w-[700px] bg-white ">
-          <DialogHeader>
-            <DialogTitle>Order Details</DialogTitle>
-            <DialogDescription>
-              {selectedOrder && `Order ID: ${selectedOrder.id}`}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[700px] bg-white">
           {selectedOrder && (
-            <div className="grid gap-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium">Customer Information</h3>
-                  <div className="mt-2 text-sm">
-                    <p className="font-medium">{selectedOrder.customer}</p>
-                    <p>{selectedOrder.email}</p>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium">Shipping Address</h3>
-                  <p className="mt-2 text-sm">{selectedOrder.address}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium">Order Status</h3>
-                  <div className="mt-">
-                    <Select
-                      defaultValue={selectedOrder.status
-                        .at(-1)
-                        .property.toLowerCase()} 
-                      onValueChange={(value) => setUpdateStatus(value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        <SelectItem value="return scheduled">
-                          Processing
-                        </SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium">Payment Status</h3>
-                  <div className="mt-2">
-                    <Badge variant={getPaymentColor(selectedOrder.payment)}>
-                      {selectedOrder.payment}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
+            <>
+              <DialogHeader>
+                <DialogTitle>Order Details</DialogTitle>
+                <DialogDescription>
+                  Order ID: {selectedOrder._id || "N/A"}
+                </DialogDescription>
+              </DialogHeader>
 
-              <div>
-                <h3 className="text-sm font-medium">Order Items</h3>
-                <div className="mt-2">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Original Price</TableHead>
-                        <TableHead>Sale Price</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedOrder.items.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{item.product}</TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          <TableCell>${item.originalPrice}</TableCell>
-                          <TableCell>${item.finalPrice}</TableCell>
-                          <TableCell className="text-right">
-                            ${item.quantity * item.finalPrice}
+              <div className="grid gap-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium">
+                      Customer Information
+                    </h3>
+                    <div className="mt-2 text-sm">
+                      <p className="font-medium">
+                        {selectedOrder.shippingAddress?.name || "N/A"}
+                      </p>
+                      <p>{selectedOrder.email || "N/A"}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">Shipping Address</h3>
+                    <p className="mt-2 text-sm">
+                      {selectedOrder.shippingAddress?.address || "N/A"},{" "}
+                      {selectedOrder.shippingAddress?.city || "N/A"},{" "}
+                      {selectedOrder.shippingAddress?.state || "N/A"},{" "}
+                      {selectedOrder.shippingAddress?.postalCode || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">Order Status</h3>
+                    <div className="mt-2">
+                      <Select
+                        value={updateStatus}
+                        onValueChange={setUpdateStatus}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          <SelectItem value="processing">Processing</SelectItem>
+                          <SelectItem value="shipped">Shipped</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">Payment Status</h3>
+                    <div className="mt-2">
+                      <Badge
+                        variant={getPaymentColor(selectedOrder.paymentStatus)}
+                      >
+                        {selectedOrder.paymentStatus || "N/A"}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium">Order Items</h3>
+                  <div className="mt-2">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product</TableHead>
+                          <TableHead>Quantity</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedOrder.items?.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{item.product?.name || "N/A"}</TableCell>
+                            <TableCell>{item.quantity || 0}</TableCell>
+                            <TableCell>
+                              ${item.price?.toFixed(2) || "0.00"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              $
+                              {(
+                                (item.price || 0) * (item.quantity || 0)
+                              ).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="text-right font-medium"
+                          >
+                            Subtotal
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            $
+                            {selectedOrder.totalAmount?.subtotal?.toFixed(2) ||
+                              "0.00"}
                           </TableCell>
                         </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell
-                          colSpan={3}
-                          className="text-right font-medium"
-                        >
-                          Total
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          ${selectedOrder.totalAmount.total}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell
-                          colSpan={3}
-                          className="text-right font-medium"
-                        >
-                          Tax
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          ${selectedOrder.totalAmount.tax}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell
-                          colSpan={3}
-                          className="text-right font-medium"
-                        >
-                          Net payable
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          ${selectedOrder.totalAmount.netAmount}
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="text-right font-medium"
+                          >
+                            Shipping
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            $
+                            {selectedOrder.totalAmount?.shipping?.toFixed(2) ||
+                              "0.00"}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="text-right font-medium"
+                          >
+                            Tax
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            $
+                            {selectedOrder.totalAmount?.tax?.toFixed(2) ||
+                              "0.00"}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="text-right font-medium"
+                          >
+                            Total
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            $
+                            {selectedOrder.totalAmount?.total?.toFixed(2) ||
+                              "0.00"}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsViewOrderOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    className="bg-black text-white"
+                    onClick={() =>
+                      updateOrderStatus(selectedOrder._id, updateStatus)
+                    }
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? "Updating..." : "Update Order"}
+                  </Button>
                 </div>
               </div>
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewOrderOpen(false)}
-                >
-                  Close
-                </Button>
-                <Button className="bg-black text-white" onClick={(e)=>{
-                  UpdateOrderStatus(selectedOrder._id, updateStatus)
-                }}>Update Order</Button>
-              </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
