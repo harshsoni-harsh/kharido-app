@@ -2,10 +2,10 @@ import { Controller, Get, HttpException, Logger } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { MESSAGES } from '@nestjs/core/constants';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CreateUserDto } from '@libs/shared/dto/create/createUser.dto';
-import { AddressDTO } from '@libs/shared/dto/common/address.dto';
-import { CreateReviewDTO } from '@libs/shared/dto/create/createReview.dto';
-import { UpdateReviewDTO } from '@libs/shared/dto/update/updateReview.dto';
+import { CreateUserDto } from '@shared/dto/create/createUser.dto';
+import { AddressDTO } from '@shared/dto/common/address.dto';
+import { CreateReviewDTO } from '@shared/dto/create/createReview.dto';
+import { UpdateReviewDTO } from '@shared/dto/update/updateReview.dto';
 
 
 @Controller()

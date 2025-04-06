@@ -21,6 +21,9 @@
       "@libs/*": [
         "libs/*"
       ],
+      "@shared/*": [
+        "libs/shared/*"
+      ],
       "@nestjs/*": [
         "node_modules/@nestjs/*"
       ]

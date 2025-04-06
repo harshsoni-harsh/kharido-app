@@ -1,7 +1,7 @@
-import { CreateCategoryDTO } from '@libs/shared/dto/create/createCategory.dto';
-import { CreateProductDTO } from '@libs/shared/dto/create/createProduct.dto';
-import { UpdateCategoryDTO } from '@libs/shared/dto/update/updateCategory.dto';
-import { UpdateProductDTO } from '@libs/shared/dto/update/updateProduct.dto';
+import { CreateCategoryDTO } from '@shared/dto/create/createCategory.dto';
+import { CreateProductDTO } from '@shared/dto/create/createProduct.dto';
+import { UpdateCategoryDTO } from '@shared/dto/update/updateCategory.dto';
+import { UpdateProductDTO } from '@shared/dto/update/updateProduct.dto';
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';

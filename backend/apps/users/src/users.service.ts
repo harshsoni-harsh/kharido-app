@@ -6,16 +6,17 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
-import { User } from '../../../libs/shared/schemas/user.schema';
-import { CreateUserDto } from '@libs/shared/dto/create/createUser.dto';
-import { Order } from '@libs/shared/schemas/order.schema';
-import { Product } from '@libs/shared/schemas/product.schema';
-import { ShoppingList } from '@libs/shared/schemas/shoppingList.schema';
-import { Cart } from '@libs/shared/schemas/cart.schema';
-import { AddressDTO } from '@libs/shared/dto/common/address.dto';
-import { CreateReviewDTO } from '@libs/shared/dto/create/createReview.dto';
-import { UpdateReviewDTO } from '@libs/shared/dto/update/updateReview.dto';
-import { Review } from '@libs/shared/schemas/review.schema';
+import { User } from '@shared/schemas/user.schema';
+import { CreateUserDto } from '@shared/dto/create/createUser.dto';
+import { Order } from '@shared/schemas/order.schema';
+import { Product } from '@shared/schemas/product.schema';
+import { ShoppingList } from '@shared/schemas/shoppingList.schema';
+import { Cart } from '@shared/schemas/cart.schema';
+import { AddressDTO } from '@shared/dto/common/address.dto';
+import { CreateReviewDTO } from '@shared/dto/create/createReview.dto';
+import { UpdateReviewDTO } from '@shared/dto/update/updateReview.dto';
+import { Review } from '@shared/schemas/review.schema';
+import { RPCResponseObject } from '@shared/types';
 
 @Injectable()
 export class UsersService {
@@ -1132,12 +1133,13 @@ export class UsersService {
   //cart related stuff
   async getCart(
     email: string,
-  ): Promise<{ statusCode: number; message: string; data?: any }> {
+  ): Promise<RPCResponseObject> {
     try {
       //  Validate email format
       if (!email || typeof email !== 'string' || !email.includes('@')) {
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid email format',
         };
       }
@@ -1147,6 +1149,7 @@ export class UsersService {
       if (!userExists) {
         return {
           statusCode: 404,
+          success: false,
           message: 'User not found',
         };
       }
@@ -1164,6 +1167,7 @@ export class UsersService {
       if (!cart) {
         return {
           statusCode: 200,
+          success: true,
           message: 'Cart is empty',
           data: { items: [] },
         };
@@ -1180,6 +1184,7 @@ export class UsersService {
 
       return {
         statusCode: 200,
+        success: true,
         message: 'Cart retrieved successfully',
         data: transformedCart,
       };
@@ -1188,13 +1193,14 @@ export class UsersService {
       return {
         statusCode: 500,
         message: 'Failed to fetch cart',
+        success: false,
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
     }
   }
   async clearCart(
     email: string,
-  ): Promise<{ statusCode: number; message: string; data?: any }> {
+  ): Promise<RPCResponseObject> {
     const session = await this.cartModel.startSession();
     session.startTransaction();
 
@@ -1204,6 +1210,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid email format',
         };
       }
@@ -1219,6 +1226,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 404,
+          success: false,
           message: 'User not found',
         };
       }
@@ -1254,6 +1262,7 @@ export class UsersService {
         await session.commitTransaction();
         return {
           statusCode: 200,
+          success: true,
           message: 'Cart created and cleared successfully',
           data: { items: [] },
         };
@@ -1262,6 +1271,7 @@ export class UsersService {
       await session.commitTransaction();
       return {
         statusCode: 200,
+        success: true,
         message: 'Cart cleared successfully',
         data: { items: [] },
       };
@@ -1270,6 +1280,7 @@ export class UsersService {
       console.error('Error clearing cart:', error);
       return {
         statusCode: 500,
+        success: false,
         message: 'Failed to clear cart',
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
@@ -1287,7 +1298,7 @@ export class UsersService {
     productId: string;
     quantity?: number;
     action: string;
-  }): Promise<{ statusCode: number; message: string; data?: any }> {
+  }): Promise<RPCResponseObject> {
     const session = await this.cartModel.startSession();
     session.startTransaction();
 
@@ -1297,6 +1308,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid product ID format',
         };
       }
@@ -1307,6 +1319,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid action specified',
         };
       }
@@ -1315,6 +1328,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid quantity for set action',
         };
       }
@@ -1330,6 +1344,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 404,
+          success: false,
           message: 'User not found',
         };
       }
@@ -1365,6 +1380,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 404,
+          success: false,
           message: 'Either cart is empty or item not found',
         };
       }
@@ -1444,6 +1460,7 @@ export class UsersService {
             await session.abortTransaction();
             return {
               statusCode: 404,
+              success: false,
               message: 'Item not found in cart',
             };
           }
@@ -1458,6 +1475,7 @@ export class UsersService {
             await session.abortTransaction();
             return {
               statusCode: 404,
+              success: false,
               message: 'Item not found in cart',
             };
           }
@@ -1481,14 +1499,15 @@ export class UsersService {
 
       return {
         statusCode: 200,
+        success: true,
         message: responseMessage,
-        data: updatedCart,
       };
     } catch (error) {
       await session.abortTransaction();
       console.error('Error updating cart:', error);
       return {
         statusCode: 500,
+        success: false,
         message: 'Failed to update cart',
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };

@@ -18,7 +18,7 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
   const { addToCart, cart } = useCartStore();
   const [quantity, setQuantity] = useState(null);
 
-  const handleAddtoCart = (event) => {
+  const handleAddtoCart = async (event) => {
     event.stopPropagation();
     const product = {
       id,
@@ -28,7 +28,7 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
       price,
       quantity: quantity ?? 1,
     };
-    addToCart(product);
+    await addToCart(product);
     setQuantity(cart.find((p) => p.id === id)?.quantity ?? 0);
   };
   useEffect(() => {

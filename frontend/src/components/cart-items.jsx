@@ -42,13 +42,13 @@ export default function CartItems() {
             <div key={item.id ?? index}>
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  {/* <Image
+                  <Image
                   src={item.image || "/placeholder.svg"}
                   alt={item.name}
                   width={80}
                   height={80}
                   className="rounded-md object-cover"
-                /> */}
+                />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium">{item.name}</h3>

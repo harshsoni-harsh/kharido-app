@@ -3,9 +3,9 @@ import { PublicController } from './public.controller';
 import { PublicService } from './public.service';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose/dist';
-import { Product, ProductSchema } from '@libs/shared/schemas/product.schema';
-import { Review, ReviewSchema } from '@libs/shared/schemas/review.schema';
-import { Category, CategorySchema } from '@libs/shared/schemas/category.schema';
+import { Product, ProductSchema } from '@shared/schemas/product.schema';
+import { Review, ReviewSchema } from '@shared/schemas/review.schema';
+import { Category, CategorySchema } from '@shared/schemas/category.schema';
 
 @Module({
   imports: [
