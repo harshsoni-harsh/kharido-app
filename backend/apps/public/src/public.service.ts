@@ -194,9 +194,10 @@ export class PublicService {
       // products pagination-ready query
       const products = await this.productModel
         .find({ category: objectId })
-        .select('_id name brand price imageLinks rating') // essential fields only
+        .select('_id name brand price imageLinks rating discontinued') // essential fields only
         .lean()
         .exec();
+      const currentProducts = products.filter(product => product.discontinued === "false")
   
       // Get count for pagination metadata
       const productCount = await this.productModel.countDocuments({ category: objectId });
@@ -206,7 +207,7 @@ export class PublicService {
         statusCode: 200,
         message: 'Category products retrieved successfully',
         data: {
-          products: products || [],
+          products: currentProducts ?? [],
           metadata: {
             category: categoryExists,
             count: productCount

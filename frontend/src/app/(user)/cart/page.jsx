@@ -6,7 +6,7 @@ import CartSummary from "@/components/cart-summary";
 
 export default function Cart() {
   return (
-    <div className="container mx-auto px-4 mt-20 mb-auto">
+    <div className="container mx-auto px-4 mt-16 mb-12">
       <div className="flex items-center gap-2 mb-8">
         <ShoppingCart className="h-6 w-6" />
         <h1 className="text-3xl font-semibold text-green-500">Your Cart</h1>

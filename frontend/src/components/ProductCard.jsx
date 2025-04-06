@@ -42,7 +42,7 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
   };
 
   return (
-    <Card onClick={handleCardClick} className="overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1 hover:shadow-2xl border-zinc-200 h-full">
+    <Card onClick={handleCardClick} className="gap-0 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-lg border-zinc-200 h-full">
       <CardHeader className="p-0">
         <div
           className="relative h-50 w-full max-h-50"
@@ -59,10 +59,10 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
           )}
         </div>
       </CardHeader>
-      <CardContent className={"h-full"}>
+      <CardContent className={"h-full mt-4"}>
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">{name}</h3>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-auto">
             {Array(5)
               .fill(0)
               .map((_, i) => (
@@ -76,7 +76,7 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
                   )}
                 />
               ))}
-            <span className="text-sm text-muted-foreground">({rating}/5)</span>
+            <span className="text-sm text-muted-foreground">({rating ?? 0}/5)</span>
           </div>
           <div className="flex flex-row justify-between items-center flex-wrap">
             <p className="font-bold text-xl"> ₹{price.toFixed(2)} </p>
@@ -86,7 +86,7 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className={"mb-4"}>
+      <CardFooter className={"mt-2"}>
         <Button
           className="w-full bg-green-500 rounded-2xl hover:bg-green-700 mt-full cursor-pointer"
           onClick={handleAddtoCart}

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,14 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import axios from "axios";
+import Image from "next/image";
+
+const FRONTEND_URI = process.env.FRONTEND_URI ?? 'http://localhost:3000'
 
 async function fetchProductDetails(productId) {
   try {
-    const res = await axios.post(
-      "/api/public/get-product",
-      {productId}
-    );
-    return res.data.data;
+    const res = await axios.post(`${FRONTEND_URI}/api/public/get-product`, { productId });
+    return res.data;
   } catch (error) {
     console.error("Error fetching products: ", error);
     return null;
@@ -53,16 +52,13 @@ export default async function ProductPage({ params }) {
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="relative aspect-square">
-          {/* <Image
-            src={product?.imageLinks || "/placeholder.jpg"}
+          <Image
+            src={product?.imageLinks?.at(0) || "https://res.cloudinary.com/dvjxfsqqx/image/upload/v1743965678/grocery_qcnkqu.png"}
             alt={product?.name || "Product Image"}
             className="object-cover rounded-lg"
             width={400}
             height={400}
-          /> */}  
-          <Badge className="absolute top-4 right-4 text-sm">
-            {product?.category}
-          </Badge>
+          />
         </div>
 
         <div>
@@ -94,7 +90,7 @@ export default async function ProductPage({ params }) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <Button className="flex-1 bg-green-500">
+            <Button className="flex-1 bg-green-500 hover:bg-green-700 text-black">
               <ShoppingCart className="mr-2 h-4 w-4" />
               Add to Cart
             </Button>
