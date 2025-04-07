@@ -30,6 +30,63 @@ export class UsersService {
     @InjectModel('Review') private readonly reviewModel: Model<Review>,
   ) {}
 
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  private async validateProductStock(
+    productId: Types.ObjectId,
+    quantity: number,
+    session: any,
+  ): Promise<RPCResponseObject | null> {
+    const product = await this.ProductModel
+      .findById(productId)
+      .session(session)
+      .lean();
+
+    if (!product) {
+      return {
+        statusCode: 404,
+        success: false,
+        message: 'Product not found',
+      };
+    }
+
+    if (product.stock === 0) {
+      return {
+        statusCode: 400,
+        success: false,
+        message: `${product.name} is out of stock`,
+      };
+    }
+
+    if (product.stock < quantity) {
+      return {
+        statusCode: 400,
+        success: false,
+        message: `Only ${product.stock} units available for ${product.name}`,
+      };
+    }
+
+    return null;
+  }
+
+  private calculateOrderTotals(items: any[]): {
+    total: number;
+    tax: number;
+    netAmount: number;
+  } {
+    const total = items.reduce(
+      (sum, item) => sum + item.finalPrice * item.quantity,
+      0,
+    );
+    const tax = total * 0.1; // Assuming 10% tax
+    const netAmount = total + tax;
+
+    return { total, tax, netAmount };
+  }
+
   //handles user updates
   async getUserMeta(email: string) {
     //just returns the user name, email,gender,role,createdAt, not the nested objects
@@ -96,7 +153,7 @@ export class UsersService {
         email: newUser[0].email,
         gender: newUser[0].gender,
         role: newUser[0].role,
-        createdAt: newUser[0].createdAt
+        createdAt: newUser[0].createdAt,
       };
 
       return {
@@ -1131,9 +1188,7 @@ export class UsersService {
 
   ////////////////////////////////////////
   //cart related stuff
-  async getCart(
-    email: string,
-  ): Promise<RPCResponseObject> {
+  async getCart(email: string): Promise<RPCResponseObject> {
     try {
       //  Validate email format
       if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -1198,9 +1253,7 @@ export class UsersService {
       };
     }
   }
-  async clearCart(
-    email: string,
-  ): Promise<RPCResponseObject> {
+  async clearCart(email: string): Promise<RPCResponseObject> {
     const session = await this.cartModel.startSession();
     session.startTransaction();
 
@@ -1515,15 +1568,413 @@ export class UsersService {
       session.endSession();
     }
   }
-  async orderUpdate() {
-    //request changes in order done by  user like cancel, return, replace
+  async orderUpdate({
+    orderId,
+    action,
+    reason,
+  }: {
+    orderId: string;
+    action: 'cancel' | 'return' | 'replace';
+    reason?: string;
+  }): Promise<RPCResponseObject> {
+    const session = await this.orderModel.startSession();
+    session.startTransaction();
+
+    try {
+      if (!Types.ObjectId.isValid(orderId)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid order ID format',
+        };
+      }
+
+      const order = await this.orderModel.findById(orderId).session(session);
+
+      if (!order) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'Order not found',
+        };
+      }
+
+      let updateResult;
+      let statusUpdate = {
+        property: action.toUpperCase(),
+        time: new Date(),
+      };
+
+      switch (action) {
+        case 'cancel':
+          if (order.status.some((s) => s.property === 'SHIPPED')) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              success: false,
+              message: 'Cannot cancel already shipped order',
+            };
+          }
+          updateResult = await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              $push: { status: statusUpdate },
+              $set: { description: reason || 'Order cancelled' },
+            },
+            { new: true, session },
+          );
+          break;
+
+        case 'return':
+          if (!order.status.some((s) => s.property === 'DELIVERED')) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              success: false,
+              message: 'Only delivered orders can be returned',
+            };
+          }
+          updateResult = await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              $push: { status: statusUpdate },
+              $set: { description: reason || 'Return requested' },
+            },
+            { new: true, session },
+          );
+          break;
+
+        case 'replace':
+          if (!order.status.some((s) => s.property === 'DELIVERED')) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              success: false,
+              message: 'Only delivered orders can be replaced',
+            };
+          }
+          updateResult = await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              $push: { status: statusUpdate },
+              $set: { description: reason || 'Replacement requested' },
+            },
+            { new: true, session },
+          );
+          break;
+
+        default:
+          await session.abortTransaction();
+          return {
+            statusCode: 400,
+            success: false,
+            message: 'Invalid action specified',
+          };
+      }
+
+      await session.commitTransaction();
+      return {
+        statusCode: 200,
+        success: true,
+        message: `Order ${action} request processed successfully`,
+        data: { orderId: updateResult._id },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error(`Error processing order ${action}:`, error);
+      return {
+        statusCode: 500,
+        success: false,
+        message: `Failed to process order ${action}`,
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
   }
 
-  async cartBuy() {
-    //allows to buy all items of cart , after order is generated cart is discarded/deleted
+  async cartBuy({
+    email,
+    paymentMode,
+    address,
+  }: {
+    email: string;
+    paymentMode: string;
+    address: any;
+  }): Promise<RPCResponseObject> {
+    const session = await this.cartModel.startSession();
+    session.startTransaction();
+
+    try {
+      // Validate inputs
+      if (!this.validateEmail(email)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid email format',
+        };
+      }
+
+      // Get user with cart populated
+      const user = await this.userModel
+        .findOne({ email })
+        .populate({
+          path: 'cart',
+          populate: {
+            path: 'items.product',
+            model: 'Product',
+          },
+        })
+        .session(session);
+
+      if (!user || !user.cart) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'User or cart not found',
+        };
+      }
+
+      const cart = user.cart as any;
+
+      // Validate cart items
+      if (!cart.items || cart.items.length === 0) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Cart is empty',
+        };
+      }
+
+      // Check product availability and stock
+      for (const item of cart.items) {
+        const stockCheck = await this.validateProductStock(
+          item.product._id,
+          item.quantity,
+          session,
+        );
+        if (stockCheck) {
+          await session.abortTransaction();
+          return stockCheck;
+        }
+      }
+
+      // Prepare order items
+      const orderItems = cart.items.map((item) => ({
+        product: item.product._id,
+        quantity: item.quantity,
+        originalPrice: item.product.price,
+        finalPrice: item.product.price, // Could apply discounts here
+      }));
+
+      // Calculate totals
+      const totals = this.calculateOrderTotals(orderItems);
+
+      // Create order
+      const order = await this.orderModel.create(
+        [
+          {
+            email,
+            address,
+            items: orderItems,
+            totalAmount: totals,
+            paymentMode,
+            payment: 'pymt_id',
+            status: [{ property: 'CREATED', time: new Date() }],
+          },
+        ],
+        { session },
+      );
+
+      // Update product stock
+      for (const item of cart.items) {
+        await this.ProductModel.findByIdAndUpdate(
+          item.product._id,
+          { $inc: { stockQuantity: -item.quantity } },
+          { session },
+        );
+      }
+
+      // Clear cart
+      await this.cartModel.findByIdAndUpdate(
+        cart._id,
+        { $set: { items: [] } },
+        { session },
+      );
+
+      // Link order to user
+      await this.userModel.findByIdAndUpdate(
+        user._id,
+        { $push: { orders: order[0]._id } },
+        { session },
+      );
+
+      await session.commitTransaction();
+      return {
+        statusCode: 200,
+        success: true,
+        message: 'Order placed successfully',
+        data: { orderId: order[0]._id },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error processing cart purchase:', error);
+      return {
+        statusCode: 500,
+        success: false,
+        message: 'Failed to process purchase',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
   }
 
-  async cartBuyDirect() {
-    //allows to buy single item directly, for buy now
+  async cartBuyDirect({
+    email,
+    productId,
+    quantity = 1,
+    paymentMode,
+    address,
+  }: {
+    email: string;
+    productId: string;
+    quantity?: number;
+    paymentMode: string;
+    address: any;
+  }): Promise<RPCResponseObject> {
+    const session = await this.orderModel.startSession();
+    session.startTransaction();
+
+    try {
+      // Validate inputs
+      if (!this.validateEmail(email)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid email format',
+        };
+      }
+
+      if (!Types.ObjectId.isValid(productId)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid product ID format',
+        };
+      }
+
+      if (typeof quantity !== 'number' || quantity < 1) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid quantity',
+        };
+      }
+
+      // Get user and product
+      const user = await this.userModel.findOne({ email }).session(session);
+
+      if (!user) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'User not found',
+        };
+      }
+
+      const product = await this.ProductModel
+        .findById(productId)
+        .session(session);
+
+      if (!product) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'Product not found',
+        };
+      }
+
+      // Validate stock
+      const stockCheck = await this.validateProductStock(
+        product._id,
+        quantity,
+        session,
+      );
+      if (stockCheck) {
+        await session.abortTransaction();
+        return stockCheck;
+      }
+
+      // Prepare order item
+      const orderItem = {
+        product: product._id,
+        quantity,
+        originalPrice: product.price,
+        finalPrice: product.price, // Could apply discounts here
+      };
+
+      // Calculate totals
+      const totals = this.calculateOrderTotals([orderItem]);
+
+      // Create order
+      const order = await this.orderModel.create(
+        [
+          {
+            email,
+            address,
+            items: [orderItem],
+            totalAmount: totals,
+            paymentMode,
+            payment: 'pymt_id',
+            status: [{ property: 'CREATED', time: new Date() }],
+          },
+        ],
+        { session },
+      );
+
+      // Update product stock
+      await this.ProductModel.findByIdAndUpdate(
+        product._id,
+        { $inc: { stockQuantity: -quantity } },
+        { session },
+      );
+
+      // Link order to user
+      await this.userModel.findByIdAndUpdate(
+        user._id,
+        { $push: { orders: order[0]._id } },
+        { session },
+      );
+
+      await session.commitTransaction();
+      return {
+        statusCode: 200,
+        success: true,
+        message: 'Direct purchase completed successfully',
+        data: { orderId: order[0]._id },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error processing direct purchase:', error);
+      return {
+        statusCode: 500,
+        success: false,
+        message: 'Failed to process direct purchase',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
   }
 }

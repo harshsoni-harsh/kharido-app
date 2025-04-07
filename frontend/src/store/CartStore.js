@@ -11,13 +11,14 @@ const useCartStore = create((set, get) => ({
         email: "amit.kumar@example.com",
       });
 
-      const cartItems = data?.items?.map((item) => ({
-        id: item.product._id,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        image: item.product.imageLinks?.[0] || "/placeholder.svg",
-      })) ?? [];
+      const cartItems =
+        data?.items?.map((item) => ({
+          id: item.product._id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          image: item.product.imageLinks?.[0] || "/placeholder.svg",
+        })) ?? [];
 
       set({
         cart: cartItems,
@@ -148,6 +149,41 @@ const useCartStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error removing cart item:", error);
+    }
+  },
+
+  deleteFromCart: async (productId) => {
+    const { cart } = get();
+    const product = cart.find((item) => item.id === productId);
+
+    if (!product) return;
+
+    try {
+      const res = await fetch(`/api/users/update-cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "amit.kumar@example.com",
+          productId: productId,
+          action: "remove",
+        }),
+      });
+
+      if (res.ok) {
+        const updatedCart = cart.filter((item) => item.id !== productId);
+
+        set({
+          cart: updatedCart,
+          totalPrice: updatedCart?.reduce(
+            (total, item) => total + item.price * item.quantity,
+            0
+          ),
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting cart item:", error);
     }
   },
 }));

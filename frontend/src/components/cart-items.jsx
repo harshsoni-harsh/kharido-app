@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
 
 export default function CartItems() {
-  const { cart, addToCart, removeFromCart, fetchCart } = useCartStore();
+  const { cart, addToCart, removeFromCart, deleteFromCart, fetchCart } =
+    useCartStore();
 
   useEffect(() => {
     fetchCart();
@@ -40,15 +41,16 @@ export default function CartItems() {
         <div className="space-y-5">
           {cart.map((item, index) => (
             <div key={item.id ?? index}>
+              {index > 0 && <Separator className="mb-4" />}
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
                   <Image
-                  src={item.image || "/placeholder.svg"}
-                  alt={item.name}
-                  width={80}
-                  height={80}
-                  className="rounded-md object-cover"
-                />
+                    src={item.image || "/placeholder.svg"}
+                    alt={item.name}
+                    width={80}
+                    height={80}
+                    className="rounded-md object-cover"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium">{item.name}</h3>
@@ -83,13 +85,12 @@ export default function CartItems() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive"
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => deleteFromCart(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <Separator className="mt-4" />
             </div>
           ))}
         </div>

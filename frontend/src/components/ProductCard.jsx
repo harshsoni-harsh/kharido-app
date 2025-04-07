@@ -50,10 +50,10 @@ function ProductCard({ id, imageLinks, name, rating, price, brand }) {
           {imageLinks?.length && (
             <Image
               src={imageLinks[0]}
-              alt={name}
-              width={300}
-              height={300}
-              className="object-contain transition-transform pt-0 h-full mx-auto"
+              alt={name ?? "image"}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
+              className="object-contain transition-transform mx-auto"
               priority
             />
           )}
