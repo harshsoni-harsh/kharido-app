@@ -9,22 +9,20 @@ import { Category, CategorySchema } from '@shared/schemas/category.schema';
 
 @Module({
   imports: [
-      ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: '.env',
-        }),
-        MongooseModule.forRoot(process.env.DB_STRING!, {
-          onConnectionCreate() {
-            Logger.log('Mongodb connected successfully');
-          },
-        }),
-        MongooseModule.forFeature([
-          
-          { name: Review.name, schema: ReviewSchema },
-          { name: Product.name, schema: ProductSchema },
-          { name: Category.name, schema: CategorySchema },
-        
-        ]),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    MongooseModule.forRoot(process.env.DB_STRING!, {
+      onConnectionCreate() {
+        Logger.log('Mongodb connected successfully');
+      },
+    }),
+    MongooseModule.forFeature([
+      { name: Review.name, schema: ReviewSchema },
+      { name: Product.name, schema: ProductSchema },
+      { name: Category.name, schema: CategorySchema },
+    ]),
   ],
   controllers: [PublicController],
   providers: [PublicService],

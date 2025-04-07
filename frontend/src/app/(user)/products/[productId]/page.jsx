@@ -38,7 +38,7 @@ export default async function ProductPage({ params }) {
     );
   }
 
-  const minQuantity = 1; // 🔹 Define minQuantity
+  const minQuantity = 1;
 
   return (
     <main className="container mx-auto py-8 px-4">
@@ -51,7 +51,7 @@ export default async function ProductPage({ params }) {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="relative aspect-square">
+        <div className="relative aspect-square flex items-start justify-center">
           <Image
             src={product?.imageLinks?.at(0) || "https://res.cloudinary.com/dvjxfsqqx/image/upload/v1743965678/grocery_qcnkqu.png"}
             alt={product?.name || "Product Image"}

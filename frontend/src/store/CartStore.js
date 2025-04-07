@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import { useUserStore } from "./UserStore";
 
 const useCartStore = create((set, get) => ({
   cart: [],
@@ -7,8 +8,11 @@ const useCartStore = create((set, get) => ({
 
   fetchCart: async () => {
     try {
+      const user = useUserStore.getState().user;
+      if (!user) return;
+
       const { data } = await axios.post(`/api/users/get-cart`, {
-        email: "amit.kumar@example.com",
+        email: user.email ?? "amit.kumar@example.com",
       });
 
       const cartItems =
@@ -36,6 +40,9 @@ const useCartStore = create((set, get) => ({
     const { cart } = get();
     const existingProduct = cart.find((item) => item.id === product.id);
 
+    const user = useUserStore.getState().user;
+    if (!user) return;
+
     if (existingProduct) {
       try {
         // If the product exists, update it on the server
@@ -45,7 +52,7 @@ const useCartStore = create((set, get) => ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: "amit.kumar@example.com",
+            email: user.email ?? "amit.kumar@example.com",
             productId: existingProduct.id,
             action: "increment",
           }),
@@ -78,7 +85,7 @@ const useCartStore = create((set, get) => ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: "amit.kumar@example.com",
+            email: user.email ?? "amit.kumar@example.com",
             productId: product.id,
             action: "add",
           }),
@@ -112,9 +119,12 @@ const useCartStore = create((set, get) => ({
 
   removeFromCart: async (productId) => {
     const { cart } = get();
-    const product = cart.find((item) => item.id === productId);
 
+    const product = cart.find((item) => item.id === productId);
     if (!product) return;
+
+    const user = useUserStore.getState().user;
+    if (!user) return;
 
     try {
       const res = await fetch(`/api/users/update-cart`, {
@@ -123,7 +133,7 @@ const useCartStore = create((set, get) => ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "amit.kumar@example.com",
+          email: user.email ?? "amit.kumar@example.com",
           productId: productId,
           action: product.quantity > 1 ? "decrement" : "remove",
         }),
@@ -154,9 +164,12 @@ const useCartStore = create((set, get) => ({
 
   deleteFromCart: async (productId) => {
     const { cart } = get();
-    const product = cart.find((item) => item.id === productId);
 
+    const product = cart.find((item) => item.id === productId);
     if (!product) return;
+
+    const user = useUserStore.getState().user;
+    if (!user) return;
 
     try {
       const res = await fetch(`/api/users/update-cart`, {
@@ -165,7 +178,7 @@ const useCartStore = create((set, get) => ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "amit.kumar@example.com",
+          email: user.email ?? "amit.kumar@example.com",
           productId: productId,
           action: "remove",
         }),

@@ -4,16 +4,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import LoginDialog from "./LoginDialog";
 import { useEffect } from "react";
-import axios from "axios";
+import { useUserStore } from "@/store/UserStore";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [userName, setUserName] = useState(null);
-
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-  };
+  const { user, fetchUser } = useUserStore();
 
   const handleProfileClick = () => {
     if (!isLoggedIn) {
@@ -22,14 +18,8 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        const {data} = await axios.get('/api/auth/me');
-        setUserName(data?.name)
-      } catch (err) {}
-    }
-    fetchUserData();
-  }, [])
+    fetchUser();
+  }, []);
 
   return (
     <div className="sticky top-0 left-0 w-full z-50 shadow-md h-16 bg-white px-4 md:px-6">
@@ -92,14 +82,16 @@ export default function Navbar() {
                     className="w-7 h-7 rounded-full mt-0.5"
                   />
                 </div>
-                <div className="text-xs text-nowrap truncate">{userName ?? "Login"}</div>
+                <div className="text-xs text-nowrap truncate">
+                  {user?.name ?? "Login"}
+                </div>
               </div>
             )}
 
             <LoginDialog
               isOpen={isDialogOpen}
               onOpenChange={setIsDialogOpen}
-              userName={userName}
+              userName={user?.name}
             />
 
             {/* Shopping Cart Link */}

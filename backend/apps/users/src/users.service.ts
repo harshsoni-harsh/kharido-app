@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
+import mongoose, { Model, ObjectId, Types } from 'mongoose';
 import { User } from '@shared/schemas/user.schema';
 import { CreateUserDto } from '@shared/dto/create/createUser.dto';
 import { Order } from '@shared/schemas/order.schema';
@@ -40,8 +40,7 @@ export class UsersService {
     quantity: number,
     session: any,
   ): Promise<RPCResponseObject | null> {
-    const product = await this.ProductModel
-      .findById(productId)
+    const product = await this.ProductModel.findById(productId)
       .session(session)
       .lean();
 
@@ -87,6 +86,52 @@ export class UsersService {
     return { total, tax, netAmount };
   }
 
+  private async getOrCreateCart(
+    user: { _id: Types.ObjectId; email: string; name?: string },
+    session?: mongoose.ClientSession,
+  ): Promise<mongoose.Document<unknown, {}, Cart> & Cart> {
+    try {
+      const query = { email: user.email };
+      const cart = await this.cartModel
+        .findOne(query)
+        .session(session || null)
+        .exec();
+
+      if (cart) {
+        return cart;
+      }
+
+      const newCartData = {
+        user: user.name,
+        email: user.email,
+        items: [],
+      };
+
+      const createOptions = session ? { session } : {};
+      const createdCart = await this.cartModel.create(
+        [newCartData],
+        createOptions,
+      );
+      const newCart = createdCart[0];
+
+      await this.userModel.findByIdAndUpdate(
+        user._id,
+        { $set: { cart: newCart._id } },
+        { session: session || undefined },
+      );
+
+      return newCart;
+    } catch (error) {
+      Logger.error(
+        `Failed to get/create cart for user ${user.email}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        'Failed to process cart operation',
+      );
+    }
+  }
+
   //handles user updates
   async getUserMeta(email: string) {
     //just returns the user name, email,gender,role,createdAt, not the nested objects
@@ -96,6 +141,7 @@ export class UsersService {
         throw new NotFoundException('User not found');
       }
       const userDetails = {
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -111,12 +157,8 @@ export class UsersService {
   async createUser(
     createUserDto: CreateUserDto,
   ): Promise<{ statusCode: number; message: string; data?: any }> {
-    const session = await this.userModel.startSession();
-    session.startTransaction();
-
     try {
       if (!createUserDto.email || !createUserDto.name) {
-        await session.abortTransaction();
         return {
           statusCode: 400,
           message: 'Name and email are required',
@@ -124,14 +166,14 @@ export class UsersService {
       }
       const existingUser = await this.userModel
         .findOne({ email: createUserDto.email })
-        .session(session)
         .lean();
 
       if (existingUser) {
-        await session.abortTransaction();
+        await this.getOrCreateCart(existingUser);
         return {
           statusCode: 409,
           message: 'User with this email already exists',
+          data: existingUser,
         };
       }
 
@@ -144,8 +186,8 @@ export class UsersService {
         createdAt: new Date(),
         // updatedAt: new Date(),
       };
-      const newUser = await this.userModel.create([userData], { session });
-      await session.commitTransaction();
+      const newUser = await this.userModel.create([userData]);
+      await this.getOrCreateCart(newUser[0]);
 
       const userResponse = {
         _id: newUser[0]._id,
@@ -162,8 +204,7 @@ export class UsersService {
         data: userResponse,
       };
     } catch (error) {
-      await session.abortTransaction();
-      console.error('Error creating user:', error);
+      Logger.error('Error creating user:', error);
 
       if (error.code === 11000) {
         return {
@@ -177,8 +218,6 @@ export class UsersService {
         message: 'Failed to create user',
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
-    } finally {
-      session.endSession();
     }
   }
   // product related
@@ -931,64 +970,11 @@ export class UsersService {
         }
       });
 
-      const cartItems = Array.from(cartItemsMap.values());
-
       // 5. Find or create cart and update
-      let cart = await this.cartModel.findOne({ email }).session(session);
-
-      if (!cart) {
-        cart = await this.cartModel.create(
-          [
-            {
-              email: user.email,
-              items: cartItems,
-              updatedAt: new Date(),
-            },
-          ],
-          { session },
-        )[0];
-
-        await this.userModel.findByIdAndUpdate(
-          user._id,
-          { $set: { cart: cart?._id } },
-          { session },
-        );
-      } else {
-        // Merge existing cart items with shopping list items
-        const existingItemsMap = new Map<
-          string,
-          { product: Types.ObjectId; quantity: number }
-        >();
-
-        cart.items.forEach((item) => {
-          existingItemsMap.set(item.product.toString(), {
-            product: item.product,
-            quantity: item.quantity,
-          });
-        });
-
-        cartItems.forEach((item) => {
-          const productId = item.product.toString();
-          if (existingItemsMap.has(productId)) {
-            existingItemsMap.get(productId)!.quantity += item.quantity;
-          } else {
-            existingItemsMap.set(productId, item);
-          }
-        });
-
-        const mergedItems = Array.from(existingItemsMap.values());
-
-        cart = await this.cartModel.findOneAndUpdate(
-          { _id: cart._id },
-          {
-            $set: {
-              items: mergedItems,
-              updatedAt: new Date(),
-            },
-          },
-          { new: true, session },
-        );
-      }
+      let cart = await this.getOrCreateCart({
+        _id: user._id,
+        email: user.email,
+      });
 
       await session.commitTransaction();
 
@@ -1189,6 +1175,8 @@ export class UsersService {
   ////////////////////////////////////////
   //cart related stuff
   async getCart(email: string): Promise<RPCResponseObject> {
+    const session = await this.userModel.startSession();
+    session.startTransaction();
     try {
       //  Validate email format
       if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -1200,8 +1188,8 @@ export class UsersService {
       }
 
       //check user exist
-      const userExists = await this.userModel.exists({ email }).lean();
-      if (!userExists) {
+      const user = await this.userModel.findOne({ email }).lean();
+      if (!user) {
         return {
           statusCode: 404,
           success: false,
@@ -1209,15 +1197,13 @@ export class UsersService {
         };
       }
 
-      //
-      const cart = await this.cartModel
-        .findOne({ email })
-        .populate({
-          path: 'items.product',
-          model: 'Product',
-          select: '_id name price imageLinks', // Only include necessary fields
-        })
-        .lean();
+      let cart = await this.getOrCreateCart(user);
+
+      cart = await cart?.populate({
+        path: 'items.product',
+        model: 'Product',
+        select: '_id name price imageLinks', // Only include necessary fields
+      });
 
       if (!cart) {
         return {
@@ -1228,22 +1214,14 @@ export class UsersService {
         };
       }
 
-      // Transform the cart data
-      const transformedCart = {
-        ...cart,
-        items: cart.items.map((item) => ({
-          ...item,
-          product: item.product || null, // Handle cases where product might be deleted
-        })),
-      };
-
       return {
         statusCode: 200,
         success: true,
         message: 'Cart retrieved successfully',
-        data: transformedCart,
+        data: cart,
       };
     } catch (error) {
+      session.abortTransaction();
       console.error('Error fetching cart:', error);
       return {
         statusCode: 500,
@@ -1251,6 +1229,8 @@ export class UsersService {
         success: false,
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
+    } finally {
+      session.endSession();
     }
   }
   async clearCart(email: string): Promise<RPCResponseObject> {
@@ -1405,41 +1385,31 @@ export class UsersService {
       // 3. Find or create cart
       let cart = await this.cartModel.findOne({ email }).session(session);
 
-      if (!cart) {
-        cart = await this.cartModel.create(
-          [
-            {
-              email: user.email,
-              items: [],
-              updatedAt: new Date(),
-            },
-          ],
-          { session },
-        )[0];
-
-        await this.userModel.findByIdAndUpdate(
-          user._id,
-          { $set: { cart: cart?._id } },
-          { session },
-        );
+      if (!cart?.items) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'Cart is empty',
+        };
       }
 
       const productObjectId = new Types.ObjectId(productId);
       const existingItemIndex = cart?.items.findIndex((item) =>
         item.product.equals(productObjectId),
-      );
+      ) as number;
 
-      if (!(existingItemIndex && cart?.items)) {
+      if (existingItemIndex === -1 && action !== 'add') {
         await session.abortTransaction();
         return {
           statusCode: 404,
           success: false,
-          message: 'Either cart is empty or item not found',
+          message: 'Item not found in cart',
         };
       }
 
       // 4. Handle different actions
-      let updateOperation;
+      let updateOperation: any;
       let responseMessage = 'Cart updated successfully';
 
       switch (action) {
@@ -1536,7 +1506,7 @@ export class UsersService {
       }
 
       // 5. Apply the update
-      const updatedCart = await this.cartModel
+      await this.cartModel
         .findOneAndUpdate(
           { _id: cart?._id },
           {
@@ -1892,9 +1862,8 @@ export class UsersService {
         };
       }
 
-      const product = await this.ProductModel
-        .findById(productId)
-        .session(session);
+      const product =
+        await this.ProductModel.findById(productId).session(session);
 
       if (!product) {
         await session.abortTransaction();

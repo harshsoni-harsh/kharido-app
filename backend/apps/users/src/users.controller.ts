@@ -1,6 +1,5 @@
-import { Controller, Get, HttpException, Logger } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { MESSAGES } from '@nestjs/core/constants';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateUserDto } from '@shared/dto/create/createUser.dto';
 import { AddressDTO } from '@shared/dto/common/address.dto';

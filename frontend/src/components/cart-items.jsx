@@ -7,14 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
+import { useUserStore } from "@/store/UserStore";
 
 export default function CartItems() {
   const { cart, addToCart, removeFromCart, deleteFromCart, fetchCart } =
     useCartStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (user) fetchCart();
+  }, [user]);
 
   if (cart.length == 0) {
     return (
@@ -79,7 +81,7 @@ export default function CartItems() {
                 </div>
                 <div className="flex flex-col items-end justify-between">
                   <span className="font-medium">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ₹{(item.price * item.quantity).toFixed(2)}
                   </span>
                   <Button
                     variant="ghost"
