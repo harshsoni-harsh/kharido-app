@@ -1,0 +1,92 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start Auth Service",
+        "type": "shell",
+        "command": "nest start auth --watch",
+        "options": {
+          "cwd": "${workspaceFolder}/backend"
+        },
+        "isBackground": true,
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+          "group": "auth"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start API Gateway",
+        "type": "shell",
+        "command": "nest start api-gateway --watch",
+        "options": {
+          "cwd": "${workspaceFolder}/backend"
+        },
+        "isBackground": true,
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+          "group": "api-gateway"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start Admin Service",
+        "type": "shell",
+        "command": "nest start admin --watch",
+        "options": {
+          "cwd": "${workspaceFolder}/backend"
+        },
+        "isBackground": true,
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+          "group": "admin"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start Public Service",
+        "type": "shell",
+        "command": "nest start public --watch",
+        "options": {
+          "cwd": "${workspaceFolder}/backend"
+        },
+        "isBackground": true,
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+          "group": "public"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start Users Service",
+        "type": "shell",
+        "command": "nest start users --watch",
+        "options": {
+          "cwd": "${workspaceFolder}/backend"
+        },
+        "isBackground": true,
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+          "group": "users"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start All Services",
+        "dependsOn": [
+          "Start Auth Service",
+          "Start API Gateway",
+          "Start Admin Service",
+          "Start Public Service",
+          "Start Users Service"
+        ],
+        "dependsOrder": "parallel"
+      }
+    ]
+  }
+  

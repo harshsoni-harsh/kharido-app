@@ -8,7 +8,11 @@ async function bootstrap() {
   const port = process.env.API_GATEWAY_PORT || 3000;
 
   app.use(cookieParser());
-  app.enableCors();
+  app.enableCors({
+    origin: process.env.FRONTEND_URI ?? 'http://localhost:3000',
+    credentials: true,
+  });
+  
   await app.listen(port, () => {
     Logger.log(`Gateway API is running on port ${port}`);
   });
