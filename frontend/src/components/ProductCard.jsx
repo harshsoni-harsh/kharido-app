@@ -14,7 +14,7 @@ import useCartStore from "../store/CartStore.js";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 
-function ProductCard({ id, imageLinks, name, rating, price, brand }) {
+function ProductCard({ id, imageLinks, name, rating, price }) {
   const { addToCart, cart } = useCartStore();
   const [quantity, setQuantity] = useState(null);
 

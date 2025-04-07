@@ -5,8 +5,10 @@ import { useUserStore } from "./UserStore";
 const useCartStore = create((set, get) => ({
   cart: [],
   totalPrice: 0,
+  loading: false,
 
   fetchCart: async () => {
+    set({ loading: true });
     try {
       const user = useUserStore.getState().user;
       if (!user) return;
@@ -33,10 +35,13 @@ const useCartStore = create((set, get) => ({
       });
     } catch (error) {
       console.error("Error fetching cart:", error);
+    } finally {
+      set({ loading: false });
     }
   },
 
   addToCart: async (product) => {
+    set({ loading: true });
     const { cart } = get();
     const existingProduct = cart.find((item) => item.id === product.id);
 
@@ -75,6 +80,8 @@ const useCartStore = create((set, get) => ({
         }
       } catch (error) {
         console.error("Error updating cart:", error);
+      } finally {
+        set({ loading: false });
       }
     } else {
       // If it's a new product, add it locally and send an API request
@@ -113,6 +120,8 @@ const useCartStore = create((set, get) => ({
         }
       } catch (error) {
         console.error("Error adding cart item:", error);
+      } finally {
+        set({ loading: false });
       }
     }
   },
@@ -126,6 +135,7 @@ const useCartStore = create((set, get) => ({
     const user = useUserStore.getState().user;
     if (!user) return;
 
+    set({ loading: true });
     try {
       const res = await fetch(`/api/users/update-cart`, {
         method: "POST",
@@ -159,6 +169,8 @@ const useCartStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error removing cart item:", error);
+    } finally {
+      set({ loading: false });
     }
   },
 
@@ -171,6 +183,7 @@ const useCartStore = create((set, get) => ({
     const user = useUserStore.getState().user;
     if (!user) return;
 
+    set({ loading: true });
     try {
       const res = await fetch(`/api/users/update-cart`, {
         method: "POST",
@@ -197,6 +210,8 @@ const useCartStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error deleting cart item:", error);
+    } finally {
+      set({ loading: false });
     }
   },
 }));

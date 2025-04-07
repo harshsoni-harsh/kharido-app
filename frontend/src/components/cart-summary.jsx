@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
 
 export default function CartSummary() {
-  const { cart, totalPrice } = useCartStore();
+  const { cart } = useCartStore();
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [isPromoApplied, setIsPromoApplied] = useState(false);

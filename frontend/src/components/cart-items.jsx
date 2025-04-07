@@ -12,11 +12,6 @@ import { useUserStore } from "@/store/UserStore";
 export default function CartItems() {
   const { cart, addToCart, removeFromCart, deleteFromCart, fetchCart } =
     useCartStore();
-  const { user } = useUserStore();
-
-  useEffect(() => {
-    if (user) fetchCart();
-  }, [user]);
 
   if (cart.length == 0) {
     return (
