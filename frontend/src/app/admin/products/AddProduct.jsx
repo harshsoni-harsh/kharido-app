@@ -45,16 +45,17 @@ export default function AddProduct({
       price: 0,
       stock: 0,
       description: "",
-      images: [],
+      imageLink: ""
     },
   });
 
   const onSubmit = (data) => {
     handleAddProduct({
       ...data,
+      imageLinks: [data.imageLink],
       price: Number(data.price),
       stock: Number(data.stock),
-      category: [data.category]
+      category: [data.category],
     });
   };
 
@@ -180,7 +181,23 @@ export default function AddProduct({
                 </FormItem>
               )}
             />
-            <div className="col-span-2">
+            <FormField
+              control={form.control}
+              name="imageLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image link</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter Image link"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* <div className="col-span-2">
               <Label htmlFor="image">Product Images</Label>
               <div className="mt-2 flex items-center gap-4">
                 <Button variant="outline" className="h-24 w-24">
@@ -190,7 +207,7 @@ export default function AddProduct({
                   </div>
                 </Button>
               </div>
-            </div>
+            </div> */}
             <DialogFooter className={"col-span-2"}>
               <Button className={"w-full bg-black text-white"} type="submit">
                 Save Product

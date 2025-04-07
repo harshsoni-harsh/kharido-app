@@ -21,7 +21,7 @@ export default function ProductTable({
   handleEditProduct,
 }) {
   function renderCategories(categoryIds) {
-    const categoryNames = categoryIds.map(id => categories.find(category => category._id === id)?.name)
+    const categoryNames = categoryIds.map(id => categories?.find(category => category._id === id)?.name)
     return categoryNames.join(" ")
   }
   return (

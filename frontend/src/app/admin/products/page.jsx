@@ -67,8 +67,9 @@ export default function Products() {
       name: selectedProduct.name,
       price: selectedProduct.price,
     });
-    alert(res.data.message);
+    toast.success(res.data.message);
     setCategories(res.data.data.categories);
+    fetchProduct();
   }
 
   const handleCategories = async (categories) => {
@@ -81,7 +82,7 @@ export default function Products() {
     const res = await axios.post("/api/admin/products/delete", {
       productId,
     });
-    alert(res.data.message);
+    toast.success(res.data.message);
     await fetchProduct();
   };
 
@@ -114,6 +115,7 @@ export default function Products() {
               category: categories,
               updateProduct,
               handleCategories,
+              setSelectedProduct,
             }}
           />
           <ExportData />

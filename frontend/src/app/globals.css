@@ -156,3 +156,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+.filter-green-effect {
+  filter: 
+    brightness(0) 
+    saturate(100%) 
+    invert(63%) 
+    sepia(43%) 
+    saturate(678%) 
+    hue-rotate(81deg) 
+    brightness(95%) 
+    contrast(86%);
+}

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
 import { useUserStore } from "./UserStore";
+import { toast } from "sonner";
 
 const useCartStore = create((set, get) => ({
   cart: [],
@@ -77,9 +78,11 @@ const useCartStore = create((set, get) => ({
               0
             ),
           });
+          toast.success("Product added successfully");
         }
       } catch (error) {
         console.error("Error updating cart:", error);
+        toast.error("Error adding product");
       } finally {
         set({ loading: false });
       }
@@ -117,9 +120,11 @@ const useCartStore = create((set, get) => ({
               0
             ),
           });
+          toast.success("Product added successfully");
         }
       } catch (error) {
         console.error("Error adding cart item:", error);
+        toast.error("Error adding product");
       } finally {
         set({ loading: false });
       }
@@ -169,6 +174,7 @@ const useCartStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error removing cart item:", error);
+      toast.error("Error in removing product");
     } finally {
       set({ loading: false });
     }
@@ -210,6 +216,7 @@ const useCartStore = create((set, get) => ({
       }
     } catch (error) {
       console.error("Error deleting cart item:", error);
+      toast.error("Error in deleting product");
     } finally {
       set({ loading: false });
     }

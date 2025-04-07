@@ -205,8 +205,8 @@ export default function UsersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {userList.map((user) => (
-                    <TableRow key={user.id}>
+                  {userList.map((user, idx) => (
+                    <TableRow key={idx}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>

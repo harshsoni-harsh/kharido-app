@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import axios from "axios";
 import Image from "next/image";
@@ -38,7 +37,7 @@ export default async function ProductPage({ params }) {
     );
   }
 
-  const minQuantity = 1;
+  const minQuantity = 1; // 🔹 Define minQuantity
 
   return (
     <main className="container mx-auto py-8 px-4">
@@ -51,7 +50,7 @@ export default async function ProductPage({ params }) {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
-        <div className="relative aspect-square flex items-start justify-center">
+        <div className="relative aspect-square">
           <Image
             src={product?.imageLinks?.at(0) || "https://res.cloudinary.com/dvjxfsqqx/image/upload/v1743965678/grocery_qcnkqu.png"}
             alt={product?.name || "Product Image"}
