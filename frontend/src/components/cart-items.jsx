@@ -8,8 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
 import { useUserStore } from "@/store/UserStore";
+import { useRouter } from "next/navigation";
 
 export default function CartItems() {
+  const router = useRouter();
   const { cart, addToCart, removeFromCart, deleteFromCart, fetchCart } =
     useCartStore();
 
@@ -47,10 +49,16 @@ export default function CartItems() {
                     width={80}
                     height={80}
                     className="rounded-md object-cover"
+                    onClick={() => router.push(`/products/${item.id}`)}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium">{item.name}</h3>
+                  <h3
+                    className="font-medium"
+                    onClick={() => router.push(`/products/${item.id}`)}
+                  >
+                    {item.name}
+                  </h3>
                   <p className="text-sm text-muted-foreground">
                     {item.category}
                   </p>
