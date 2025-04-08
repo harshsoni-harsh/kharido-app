@@ -9,12 +9,16 @@ import { Badge } from "./ui/badge";
 import useCartStore from "@/store/CartStore";
 import Image from "next/image";
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
+import { Button } from "./ui/button";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { user, fetchUser } = useUserStore();
   const { cart } = useCartStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   const handleProfileClick = () => {
     if (!isLoggedIn) {
@@ -25,6 +29,15 @@ export default function Navbar() {
   useEffect(() => {
     fetchUser();
   }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault(); // Prevent page reload
+    if (searchQuery.trim()) {
+      router.push(
+        `/SearchProduct?query=${encodeURIComponent(searchQuery.trim())}`
+      );
+    }
+  };
 
   return (
     <div className="sticky top-0 left-0 w-full z-50 shadow-md h-16 bg-white px-4 md:px-6">
@@ -53,13 +66,20 @@ export default function Navbar() {
           </div>
         </div>
         <div className="flex flex-row gap-4 md:gap-6">
-          <input
-            type="text"
-            placeholder="Search"
-            className="h-10 w-full max-w-[24rem] md:max-w-[30rem] px-4 border border-gray-300 hover:border-gray-400 rounded-xl focus:outline-none 
-              focus:ring-2 focus:ring-gray-300 bg-white shadow-sm"
-          />
-
+          <form
+            onSubmit={handleSearch}
+            className="flex gap-2 w-full max-w-[30rem]"
+          >
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              className="h-10 w-full px-4 border border-gray-300 hover:border-gray-400 rounded-xl focus:outline-none 
+        focus:ring-2 focus:ring-gray-300 bg-white shadow-sm"
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button type="submit">Search</Button>
+          </form>
           <div className="flex items-center gap-4">
             {/* Profile Link */}
             {isLoggedIn ? (
@@ -103,7 +123,16 @@ export default function Navbar() {
             <div className="text-center flex flex-col gap-1">
               <div className="flex flex-col relative">
                 <Link href="/cart" className="cursor-pointer">
-                  <Image width={28} height={28} src="/bag.svg" alt="bag" className={clsx("mt-0.5", (cart?.length && cart.length > 0) && 'filter-green-effect' )} />
+                  <Image
+                    width={28}
+                    height={28}
+                    src="/bag.svg"
+                    alt="bag"
+                    className={clsx(
+                      "mt-0.5",
+                      cart?.length && cart.length > 0 && "filter-green-effect"
+                    )}
+                  />
                 </Link>
               </div>
               <div className="text-xs">Cart</div>
