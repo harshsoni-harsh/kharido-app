@@ -12,13 +12,12 @@ import {
 } from "@/components/ui/sidebar";
 
 import {
-  BarChart3,
   Box,
   Package,
   ShoppingCart,
   Users,
   Settings,
-  LayoutDashboard,
+  LayoutDashboard
 } from "lucide-react";
 
 const items = [
@@ -46,11 +45,6 @@ const items = [
     title: "Inventory",
     url: "/admin/inventory",
     icon: Box,
-  },
-  {
-    title: "Reports",
-    url: "/admin/reports",
-    icon: BarChart3,
   },
   {
     title: "Settings",
