@@ -146,6 +146,7 @@ export class UsersService {
         email: user.email,
         role: user.role,
         gender: user.gender,
+        address: user.addresses
       };
       return userDetails;
     } catch (error) {
@@ -264,7 +265,7 @@ export class UsersService {
         throw new NotFoundException('Orders not found');
       }
       const order = await this.orderModel
-        .findOne({ id: id, email: email })
+        .findOne({ _id: id, email: email })
         .exec();
       console.log(order);
       const loadedItems = await Promise.all(
