@@ -61,7 +61,7 @@ function ProductCard({ id, imageLinks, name, rating, price }) {
       </CardHeader>
       <CardContent className={"h-full mt-4"}>
         <div className="space-y-2">
-          <h3 className="font-semibold text-lg">{name}</h3>
+          <h3 className="font-semibold text-lg">{name.length > 20 ? name.slice(0 ,  20)+"...":name}</h3>
           <div className="flex items-center gap-2 mt-auto">
             {Array(5)
               .fill(0)
