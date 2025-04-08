@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
+import { useRouter } from "next/navigation";
 
 export default function CartSummary() {
+  const router = useRouter()
   const { cart } = useCartStore();
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -35,6 +37,7 @@ export default function CartSummary() {
       setIsPromoApplied(true);
     }
   };
+  console.log(cart)
 
   return (
     <Card>
@@ -97,6 +100,7 @@ export default function CartSummary() {
       </CardContent>
       <CardFooter>
         <Button
+          onClick={()=>router.push('/checkout')}
           className="w-full bg-green-500 mb-6 hover:bg-green-700"
           size="lg"
         >

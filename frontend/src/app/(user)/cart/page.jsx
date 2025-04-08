@@ -10,7 +10,7 @@ import { useEffect } from "react";
 
 export default function Cart() {
   const { loading, fetchCart } = useCartStore();
-
+  
   const { user } = useUserStore();
 
   useEffect(() => {

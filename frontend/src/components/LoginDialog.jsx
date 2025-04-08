@@ -58,12 +58,12 @@ export default function LoginDialog({ isOpen, onOpenChange, userName }) {
       <DropdownMenuLabel>My Account</DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuGroup>
-        <DropdownMenuItem onClick = {()=>router.push('/addreses')}>
+        <DropdownMenuItem>
           <User />
           <span>Profile</span>
   
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick = {()=>router.push('/orders')}>
           <ShoppingBag />
           <span>Orders</span>
          
@@ -73,7 +73,7 @@ export default function LoginDialog({ isOpen, onOpenChange, userName }) {
           <span>Shopping Lists</span>
          
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem  onClick = {()=>router.push('/addresses')}>
           <MapPinHouse />
           <span>My Addresses</span>
         </DropdownMenuItem>
