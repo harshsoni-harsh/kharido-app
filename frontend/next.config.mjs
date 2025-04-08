@@ -10,6 +10,20 @@ const nextConfig = {
       ],
     };
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com/dvjxfsqqx',
+        pathname: '/**',
+      },
+    ],
+  }
 };
 
 export default nextConfig;

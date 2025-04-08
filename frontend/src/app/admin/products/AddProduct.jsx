@@ -35,21 +35,28 @@ export default function AddProduct({
   isAddProductOpen,
   setIsAddProductOpen,
   handleAddProduct,
-  category,
-}) 
-
-{
-  
+  category: categories = [],
+}) {
   const form = useForm({
     defaultValues: {
       name: "",
-      category: [],
+      category: "",
       brand: "",
+      price: 0,
+      stock: 0,
+      description: "",
+      imageLink: ""
     },
   });
 
   const onSubmit = (data) => {
-    handleAddProduct(data);
+    handleAddProduct({
+      ...data,
+      imageLinks: [data.imageLink],
+      price: Number(data.price),
+      stock: Number(data.stock),
+      category: [data.category],
+    });
   };
 
   return (
@@ -127,21 +134,17 @@ export default function AddProduct({
                   <FormControl>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      defaultValue={categories?.at(0)?._id}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {category.map((item) => (
-                          <SelectItem value={item._id}>{item.name}</SelectItem>
+                        {categories.map((item) => (
+                          <SelectItem key={item._id} value={item._id}>
+                            {item.name}
+                          </SelectItem>
                         ))}
-                        {/* <SelectItem value="fruits">Fruits</SelectItem>
-                        <SelectItem value="vegetables">Vegetables</SelectItem>
-                        <SelectItem value="dairy">Dairy</SelectItem>
-                        <SelectItem value="bakery">Bakery</SelectItem>
-                        <SelectItem value="meat">Meat</SelectItem>
-                        <SelectItem value="seafood">Seafood</SelectItem> */}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -178,7 +181,23 @@ export default function AddProduct({
                 </FormItem>
               )}
             />
-            <div className="col-span-2">
+            <FormField
+              control={form.control}
+              name="imageLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image link</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter Image link"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* <div className="col-span-2">
               <Label htmlFor="image">Product Images</Label>
               <div className="mt-2 flex items-center gap-4">
                 <Button variant="outline" className="h-24 w-24">
@@ -188,7 +207,7 @@ export default function AddProduct({
                   </div>
                 </Button>
               </div>
-            </div>
+            </div> */}
             <DialogFooter className={"col-span-2"}>
               <Button className={"w-full bg-black text-white"} type="submit">
                 Save Product

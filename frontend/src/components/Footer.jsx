@@ -20,7 +20,7 @@ function Footer() {
   };
 
   return (
-    <footer className="bg-background border-t bg-slate-200 pl-8 mt-16">
+    <footer className="border-t bg-slate-200 pl-8 mt-auto">
       <div className="container px-4 py-10 md:py-16 mx-auto">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 justify-between">
           {/* Brand Column */}
@@ -35,35 +35,35 @@ function Footer() {
             <div className="flex gap-4 mt-2">
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground transition-colors"
               >
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground transition-colors"
               >
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground transition-colors"
               >
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground transition-colors"
               >
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground transition-colors"
               >
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
@@ -78,7 +78,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                   Fruits & Vegetable
                 </Link>
@@ -86,7 +86,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                   Dairy & Bread
                 </Link>
@@ -94,7 +94,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                     Backery & Biscuit
                 </Link>
@@ -102,7 +102,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                   ColdDrinks & Juices
                 </Link>
@@ -110,7 +110,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                   Snacks & Munchies
                 </Link>
@@ -125,7 +125,7 @@ function Footer() {
             <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                     Countact Us
                 </Link>
@@ -133,7 +133,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                   FAQs
                 </Link>
@@ -141,7 +141,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                   Delivery Information
                 </Link>
@@ -149,7 +149,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500"
+                  className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
                     Return Policy
                 </Link>
@@ -157,7 +157,7 @@ function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors hover:text-gray-500 "
+                  className="text-muted-foreground transition-colors hover:text-gray-500 "
                 >
                   Help center
                 </Link>

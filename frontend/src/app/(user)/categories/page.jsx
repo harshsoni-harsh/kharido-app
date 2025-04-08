@@ -90,14 +90,12 @@ function page() {
     }
   }, []);
 
-  const [productList, setProductList] = useState([]);
-
   return (
-    <div className="lg:mx-16 md:mx-8 sm:mx-4  mt-20 mb-8">
+    <div className="lg:mx-16 md:mx-8 sm:mx-4 mt-20 mb-12">
       <div className="">
         <div className="flex flex-col gap-6">
-          {categoriesList.map((category, index) => (
-            <div className="flex flex-col rounded-2xl px-2 py-2 shadow-2xl">
+          {categoriesList.map((category, idx) => (
+            <div key={idx} className="flex flex-col rounded-2xl px-2 py-2 shadow-2xl">
               <div className="flex  flex-row justify-between">
                 <div className="text-2xl mb-4 font-bold mt-4">
                   {category.name}

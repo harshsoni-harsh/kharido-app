@@ -16,7 +16,7 @@ export class AuthController {
     try {
       return await this.authService.handleGoogleCallback(data.code);
     } catch (err) {
-      Logger.error(err.response.text)
+      Logger.error(err.response?.text ?? err)
       throw new RpcException("Bad Request")
     }
   }

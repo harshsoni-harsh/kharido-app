@@ -1,27 +1,10 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
-import {
-  ChartContainer,
-  ChartTooltipContent,
-  ChartTooltip,
-} from "@/components/ui/chart";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  IndianRupee,
-  Package,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+import { ChartContainer } from "@/components/ui/chart";
+import { IndianRupee, Package, ShoppingCart, Users } from "lucide-react";
 import axios from "axios";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -36,15 +19,14 @@ const dummyLast10MonthRevenue = [
   { month: "December", total: 110750 },
   { month: "January", total: 134200 },
   { month: "February", total: 118500 },
-  { month: "March", total: 125000 }
+  { month: "March", total: 125000 },
 ];
-
 
 export default function Page() {
   const [totalOrderCount, setTotalOrderCount] = useState(0);
   const [totalProductLastMonth, setTotalProductLastMonthCount] = useState(0);
   const [lastMonthRevenue, setLastMonthRevenue] = useState(0);
-  const [totalUsers,setTotalUsers] = useState(2341);
+  const [totalUsers, setTotalUsers] = useState(2341);
   const [last10MonthsRevenue, setLast10MonthRevenue] = useState(
     dummyLast10MonthRevenue
   );
@@ -79,17 +61,12 @@ export default function Page() {
     getLast10MonthsRevenue();
   }, []);
 
-  async function getTotalUsers(){
-    try{
-
+  async function getTotalUsers() {
+    try {
       const res = await axios.get("api/admin/analytics/total-users");
-      console.log("total users",res)
-      setTotalUsers(res.data||2341)
-    }
-    catch(e){
-      
-    }
-
+      console.log("total users", res);
+      setTotalUsers(res.data || 2341);
+    } catch (e) {}
   }
   async function getTotalProductsSold() {
     const startDate = new Date();
@@ -117,12 +94,12 @@ export default function Page() {
     const startDate = new Date();
     startDate.setFullYear(2000);
     // startDate.setMonth(startDate.getMonth() - 1);
-    
+
     const res = await axios.post("/api/admin/orders/interval", {
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString(),
     });
-    console.log("order count",res.data);
+    console.log("order count", res.data);
     setTotalOrderCount(res.data.totalCount);
   }
 
@@ -188,43 +165,28 @@ export default function Page() {
         <p className="text-muted-foreground">Overview of your grocery store</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className={"justify-between gap-0 max-md:gap-2"}>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {" "}
               ₹ {lastMonthRevenue ? lastMonthRevenue.toFixed(2) : "45,231.89"}
             </div>
-            {/* <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
-                <ArrowUpIcon className="mr-1 h-4 w-4" />
-                +20.1%
-              </span>{" "}
-              from last month
-            </p> */}
           </CardContent>
         </Card>
-        <Card>
+        <Card className={"justify-between gap-0 max-md:gap-2"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalOrderCount}</div>
-            {/* <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
-                <ArrowUpIcon className="mr-1 h-4 w-4" />
-                +12.2%
-              </span>{" "}
-              from last month
-            </p> */}
           </CardContent>
         </Card>
-        <Card>
+        <Card className={"justify-between gap-0 max-md:gap-2"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Products Sold Last Month
@@ -233,29 +195,15 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalProductLastMonth}</div>
-            {/* <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
-                <ArrowUpIcon className="mr-1 h-4 w-4" />
-                +8.4%
-              </span>{" "}
-              new products this month
-            </p> */}
           </CardContent>
         </Card>
-        <Card>
+        <Card className={"justify-between gap-0 max-md:gap-2"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalUsers}</div>
-            {/* <p className="text-xs text-muted-foreground">
-              <span className="text-red-500 flex items-center">
-                <ArrowDownIcon className="mr-1 h-4 w-4" />
-                -4.5%
-              </span>{" "}
-              from last month
-            </p> */}
           </CardContent>
         </Card>
       </div>
@@ -306,7 +254,11 @@ export default function Page() {
                   <BarChart
                     width={600}
                     height={300}
-                    data={last10MonthsRevenue.length? last10MonthsRevenue:dummyLast10MonthRevenue}
+                    data={
+                      last10MonthsRevenue.length
+                        ? last10MonthsRevenue
+                        : dummyLast10MonthRevenue
+                    }
                     margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                   >
                     <XAxis

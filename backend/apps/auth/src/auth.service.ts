@@ -1,7 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ClientProxy } from '@nestjs/microservices';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
+import { lastValueFrom, timeout } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -11,7 +18,10 @@ export class AuthService {
     process.env.AUTH_REDIRECT_URI,
   );
 
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    @Inject('USERS_CLIENT') private userClient: ClientProxy,
+  ) {}
 
   googleAuthUrl() {
     return this.client.generateAuthUrl({
@@ -26,11 +36,16 @@ export class AuthService {
     const oauth2 = google.oauth2({ version: 'v2', auth: this.client });
     const { data } = await oauth2.userinfo.get();
 
-    const user = {
-      id: data.id,
+    if (!(data.email && data.name && data.id)) {
+      Logger.debug(`${data.email}, ${data.name}, ${data.id}`, 'auth.service');
+      throw new InternalServerErrorException('Data undefined');
+    }
+
+    const user = await this.findOrCreateUser({
       email: data.email,
-      name: data.name
-    };
+      name: data.name || data.email?.split('@')[0],
+      googleId: data.id,
+    });
 
     return this.generateTokens(user);
   }
@@ -47,5 +62,35 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  private async findOrCreateUser(userData: {
+    email: string;
+    name: string;
+    googleId: string;
+  }) {
+    const createUserDto = {
+      email: userData.email,
+      name: userData.name,
+      gender: 'unspecified',
+    };
+
+    const creationResult = await lastValueFrom(
+      this.userClient.send('USER_CREATE', createUserDto).pipe(timeout(5000)),
+    );
+    if (
+      !creationResult ||
+      (creationResult.statusCode !== 201 && creationResult.statusCode !== 409)
+    ) {
+      Logger.log(
+        `${creationResult.statusCode} ${JSON.stringify(creationResult?.data)}`,
+      );
+      throw new Error('Failed to create user');
+    }
+    return {
+      id: userData.googleId,
+      email: userData.email,
+      name: userData.name,
+    };
   }
 }

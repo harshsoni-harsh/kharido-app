@@ -16,7 +16,9 @@ export class AuthController {
   @Get('google/callback')
   async googleAuthRedirect(@Query('code') code: string, @Res() res) {
     const tokens = await this.authService.googleAuthRedirect(code);
-    const frontendDomain = new URL(process.env.FRONTEND_URI ?? 'http://localhost:3000').hostname;
+    const frontendDomain = new URL(
+      process.env.FRONTEND_URI ?? 'http://localhost:3000',
+    ).hostname;
 
     res.cookie('jwt', tokens.accessToken, {
       httpOnly: true,
@@ -42,9 +44,9 @@ export class AuthController {
     res.json({ message: 'Logged out' });
   }
 
-  @Get('hello')
+  @Get('me')
   @UseGuards(JwtAuthGuard)
-  async sayHello(@Req() req: Request) {
-    return "hello"
+  getProfile(@Req() req) {
+    return req.user;
   }
 }

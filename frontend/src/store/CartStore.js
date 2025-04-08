@@ -1,161 +1,224 @@
 import { create } from "zustand";
 import axios from "axios";
+import { useUserStore } from "./UserStore";
+import { toast } from "sonner";
 
 const useCartStore = create((set, get) => ({
   cart: [],
   totalPrice: 0,
+  loading: false,
 
   fetchCart: async () => {
+    set({ loading: true });
     try {
+      const user = useUserStore.getState().user;
+      if (!user) return;
+
       const { data } = await axios.post(`/api/users/get-cart`, {
-        email: "john.doe@example.com",
+        email: user.email ?? "amit.kumar@example.com",
       });
 
-      const cartItems = data?.data?.items?.map((item) => ({
-        id: item.product._id,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        image: item.product.imageLinks?.[0] || "/placeholder.svg",
-      }));
+      const cartItems =
+        data?.items?.map((item) => ({
+          id: item.product._id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          image: item.product.imageLinks?.[0] || "/placeholder.svg",
+        })) ?? [];
 
       set({
-        cart: cartItems ?? [],
+        cart: cartItems,
         totalPrice: cartItems.reduce(
           (total, item) => total + item.price * item.quantity,
           0
         ),
       });
-
-      console.log("Cart fetched successfully:", cartItems);
     } catch (error) {
       console.error("Error fetching cart:", error);
+    } finally {
+      set({ loading: false });
     }
   },
 
-  addToCart: (product) => {
-    const {cart} = get();
+  addToCart: async (product) => {
+    set({ loading: true });
+    const { cart } = get();
     const existingProduct = cart.find((item) => item.id === product.id);
+
+    const user = useUserStore.getState().user;
+    if (!user) return;
 
     if (existingProduct) {
       try {
         // If the product exists, update it on the server
-        const { data } = axios.post(`/api/users/update-cart`, {
-          email: "john.doe@example.com",
-          productId: existingProduct.id,
-          action: "increment",
+        const res = await fetch(`/api/users/update-cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email ?? "amit.kumar@example.com",
+            productId: existingProduct.id,
+            action: "increment",
+          }),
         });
 
-        set(() => ({
-          cart:
-            data?.data?.items?.map((item) => ({
-              id: item.product._id,
-              name: item.product.name,
-              price: item.product.price,
-              quantity: item.quantity,
-              image: item.product.imageLinks?.[0] || "/placeholder.svg",
-            })) ?? [],
-          totalPrice: data?.data?.items?.reduce(
-            (total, item) => total + item.product.price * item.quantity,
-            0
-          ),
-        }));
-      } catch (err) {
-        console.error("Error updating cart:", error);
-      }
+        if (res.ok) {
+          const updatedCart = cart.map((item) =>
+            item.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
 
-      // Optimistic update before API response
-      // return {
-      //   cart: state.cart.map((item) =>
-      //     item.id === product.id
-      //       ? { ...item, quantity: item.quantity + 1 }
-      //       : item
-      //   ),
-      //   totalPrice: state.totalPrice + product.price,
-      // };
+          set({
+            cart: updatedCart,
+            totalPrice: updatedCart?.reduce(
+              (total, item) => total + item.price * item.quantity,
+              0
+            ),
+          });
+          toast.success("Product added successfully");
+        }
+      } catch (error) {
+        console.error("Error updating cart:", error);
+        toast.error("Error adding product");
+      } finally {
+        set({ loading: false });
+      }
     } else {
       // If it's a new product, add it locally and send an API request
       try {
-        const { data } = axios.post(`/api/users/get-cart`, {
-          email: "john.doe@example.com",
-          productId: product.id,
-          action: "add",
+        const res = await fetch(`/api/users/update-cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email ?? "amit.kumar@example.com",
+            productId: product.id,
+            action: "add",
+          }),
         });
-        console.log("RESPONSE AFTER ADD: ", data);
 
-        set(() => ({
-          cart:
-            data?.data?.items?.map((item) => ({
-              id: item.product._id,
-              name: item.product.name,
-              price: item.product.price,
-              quantity: item.quantity,
-              image: item.product.imageLinks?.[0] || "/placeholder.svg",
-            })) ?? [],
-          totalPrice: data?.data?.items?.reduce(
-            (total, item) => total + item.product.price * item.quantity,
-            0
-          ),
-        }));
-      } catch (err) {
-        console.error("Error adding cart item:", err);
+        if (res.ok) {
+          const updatedCart = [
+            ...cart,
+            {
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              quantity: 1,
+              image: product.imageLinks?.[0] || "/placeholder.svg",
+            },
+          ];
+
+          set({
+            cart: updatedCart,
+            totalPrice: updatedCart?.reduce(
+              (total, item) => total + item.price * item.quantity,
+              0
+            ),
+          });
+          toast.success("Product added successfully");
+        }
+      } catch (error) {
+        console.error("Error adding cart item:", error);
+        toast.error("Error adding product");
+      } finally {
+        set({ loading: false });
       }
-
-      // Optimistic update before API response
-      return {
-        cart: [...state.cart, { ...product, quantity: 1 }],
-        totalPrice: state.totalPrice + product.price,
-      };
     }
   },
 
-  removeFromCart: (productId) => {
-    const product = state.cart.find((item) => item.id === productId);
+  removeFromCart: async (productId) => {
+    const { cart } = get();
 
-    if (!product) return state; // If product not found, return state
+    const product = cart.find((item) => item.id === productId);
+    if (!product) return;
 
-    axios
-      .post(`/api/users/update-cart`, {
-        email: "john.doe@example.com",
-        productId: productId,
-        action: product.quantity > 1 ? "decrement" : "remove",
-      })
-      .then((response) => {
-        console.log(response.data); // Log response data
+    const user = useUserStore.getState().user;
+    if (!user) return;
 
-        set(() => ({
-          cart: response.data.data.items.map((item) => ({
-            id: item.product._id,
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-            image: item.product.imageLinks?.[0] || "/placeholder.svg",
-          })),
-          totalPrice: response.data.data.items.reduce(
-            (total, item) => total + item.product.price * item.quantity,
-            0
-          ),
-        }));
-      })
-      .catch((error) => {
-        console.error("Error removing cart item:", error);
+    set({ loading: true });
+    try {
+      const res = await fetch(`/api/users/update-cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: user.email ?? "amit.kumar@example.com",
+          productId: productId,
+          action: product.quantity > 1 ? "decrement" : "remove",
+        }),
       });
 
-    // Optimistic update before API response
-    if (product.quantity > 1) {
-      return {
-        cart: state.cart.map((item) =>
-          item.id === productId
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        ),
-        totalPrice: state.totalPrice - product.price,
-      };
-    } else {
-      return {
-        cart: state.cart.filter((item) => item.id !== productId), // Remove product completely
-        totalPrice: state.totalPrice - product.price,
-      };
+      if (res.ok) {
+        const updatedCart =
+          product.quantity > 1
+            ? cart.map((item) =>
+                item.id === productId
+                  ? { ...item, quantity: item.quantity - 1 }
+                  : item
+              )
+            : cart.filter((item) => item.id !== productId);
+
+        set({
+          cart: updatedCart,
+          totalPrice: updatedCart?.reduce(
+            (total, item) => total + item.price * item.quantity,
+            0
+          ),
+        });
+      }
+    } catch (error) {
+      console.error("Error removing cart item:", error);
+      toast.error("Error in removing product");
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  deleteFromCart: async (productId) => {
+    const { cart } = get();
+
+    const product = cart.find((item) => item.id === productId);
+    if (!product) return;
+
+    const user = useUserStore.getState().user;
+    if (!user) return;
+
+    set({ loading: true });
+    try {
+      const res = await fetch(`/api/users/update-cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: user.email ?? "amit.kumar@example.com",
+          productId: productId,
+          action: "remove",
+        }),
+      });
+
+      if (res.ok) {
+        const updatedCart = cart.filter((item) => item.id !== productId);
+
+        set({
+          cart: updatedCart,
+          totalPrice: updatedCart?.reduce(
+            (total, item) => total + item.price * item.quantity,
+            0
+          ),
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting cart item:", error);
+      toast.error("Error in deleting product");
+    } finally {
+      set({ loading: false });
     }
   },
 }));

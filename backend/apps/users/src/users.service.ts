@@ -5,17 +5,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
-import { User } from '../../../libs/shared/schemas/user.schema';
-import { CreateUserDto } from '@libs/shared/dto/create/createUser.dto';
-import { Order } from '@libs/shared/schemas/order.schema';
-import { Product } from '@libs/shared/schemas/product.schema';
-import { ShoppingList } from '@libs/shared/schemas/shoppingList.schema';
-import { Cart } from '@libs/shared/schemas/cart.schema';
-import { AddressDTO } from '@libs/shared/dto/common/address.dto';
-import { CreateReviewDTO } from '@libs/shared/dto/create/createReview.dto';
-import { UpdateReviewDTO } from '@libs/shared/dto/update/updateReview.dto';
-import { Review } from '@libs/shared/schemas/review.schema';
+import mongoose, { Model, ObjectId, Types } from 'mongoose';
+import { User } from '@shared/schemas/user.schema';
+import { CreateUserDto } from '@shared/dto/create/createUser.dto';
+import { Order } from '@shared/schemas/order.schema';
+import { Product } from '@shared/schemas/product.schema';
+import { ShoppingList } from '@shared/schemas/shoppingList.schema';
+import { Cart } from '@shared/schemas/cart.schema';
+import { AddressDTO } from '@shared/dto/common/address.dto';
+import { CreateReviewDTO } from '@shared/dto/create/createReview.dto';
+import { UpdateReviewDTO } from '@shared/dto/update/updateReview.dto';
+import { Review } from '@shared/schemas/review.schema';
+import { RPCResponseObject } from '@shared/types';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +30,108 @@ export class UsersService {
     @InjectModel('Review') private readonly reviewModel: Model<Review>,
   ) {}
 
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  private async validateProductStock(
+    productId: Types.ObjectId,
+    quantity: number,
+    session: any,
+  ): Promise<RPCResponseObject | null> {
+    const product = await this.ProductModel.findById(productId)
+      .session(session)
+      .lean();
+
+    if (!product) {
+      return {
+        statusCode: 404,
+        success: false,
+        message: 'Product not found',
+      };
+    }
+
+    if (product.stock === 0) {
+      return {
+        statusCode: 400,
+        success: false,
+        message: `${product.name} is out of stock`,
+      };
+    }
+
+    if (product.stock < quantity) {
+      return {
+        statusCode: 400,
+        success: false,
+        message: `Only ${product.stock} units available for ${product.name}`,
+      };
+    }
+
+    return null;
+  }
+
+  private calculateOrderTotals(items: any[]): {
+    total: number;
+    tax: number;
+    netAmount: number;
+  } {
+    const total = items.reduce(
+      (sum, item) => sum + item.finalPrice * item.quantity,
+      0,
+    );
+    const tax = total * 0.1; // Assuming 10% tax
+    const netAmount = total + tax;
+
+    return { total, tax, netAmount };
+  }
+
+  private async getOrCreateCart(
+    user: { _id: Types.ObjectId; email: string; name?: string },
+    session?: mongoose.ClientSession,
+  ): Promise<mongoose.Document<unknown, {}, Cart> & Cart> {
+    try {
+      const query = { email: user.email };
+      const cart = await this.cartModel
+        .findOne(query)
+        .session(session || null)
+        .exec();
+
+      if (cart) {
+        return cart;
+      }
+
+      const newCartData = {
+        user: user.name,
+        email: user.email,
+        items: [],
+      };
+
+      const createOptions = session ? { session } : {};
+      const createdCart = await this.cartModel.create(
+        [newCartData],
+        createOptions,
+      );
+      const newCart = createdCart[0];
+
+      await this.userModel.findByIdAndUpdate(
+        user._id,
+        { $set: { cart: newCart._id } },
+        { session: session || undefined },
+      );
+
+      return newCart;
+    } catch (error) {
+      Logger.error(
+        `Failed to get/create cart for user ${user.email}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        'Failed to process cart operation',
+      );
+    }
+  }
+
   //handles user updates
   async getUserMeta(email: string) {
     //just returns the user name, email,gender,role,createdAt, not the nested objects
@@ -38,6 +141,7 @@ export class UsersService {
         throw new NotFoundException('User not found');
       }
       const userDetails = {
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -53,12 +157,8 @@ export class UsersService {
   async createUser(
     createUserDto: CreateUserDto,
   ): Promise<{ statusCode: number; message: string; data?: any }> {
-    const session = await this.userModel.startSession();
-    session.startTransaction();
-
     try {
       if (!createUserDto.email || !createUserDto.name) {
-        await session.abortTransaction();
         return {
           statusCode: 400,
           message: 'Name and email are required',
@@ -66,14 +166,14 @@ export class UsersService {
       }
       const existingUser = await this.userModel
         .findOne({ email: createUserDto.email })
-        .session(session)
         .lean();
 
       if (existingUser) {
-        await session.abortTransaction();
+        await this.getOrCreateCart(existingUser);
         return {
           statusCode: 409,
           message: 'User with this email already exists',
+          data: existingUser,
         };
       }
 
@@ -86,8 +186,8 @@ export class UsersService {
         createdAt: new Date(),
         // updatedAt: new Date(),
       };
-      const newUser = await this.userModel.create([userData], { session });
-      await session.commitTransaction();
+      const newUser = await this.userModel.create([userData]);
+      await this.getOrCreateCart(newUser[0]);
 
       const userResponse = {
         _id: newUser[0]._id,
@@ -95,7 +195,7 @@ export class UsersService {
         email: newUser[0].email,
         gender: newUser[0].gender,
         role: newUser[0].role,
-        createdAt: newUser[0].createdAt
+        createdAt: newUser[0].createdAt,
       };
 
       return {
@@ -104,8 +204,7 @@ export class UsersService {
         data: userResponse,
       };
     } catch (error) {
-      await session.abortTransaction();
-      console.error('Error creating user:', error);
+      Logger.error('Error creating user:', error);
 
       if (error.code === 11000) {
         return {
@@ -119,8 +218,6 @@ export class UsersService {
         message: 'Failed to create user',
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
-    } finally {
-      session.endSession();
     }
   }
   // product related
@@ -873,64 +970,11 @@ export class UsersService {
         }
       });
 
-      const cartItems = Array.from(cartItemsMap.values());
-
       // 5. Find or create cart and update
-      let cart = await this.cartModel.findOne({ email }).session(session);
-
-      if (!cart) {
-        cart = await this.cartModel.create(
-          [
-            {
-              email: user.email,
-              items: cartItems,
-              updatedAt: new Date(),
-            },
-          ],
-          { session },
-        )[0];
-
-        await this.userModel.findByIdAndUpdate(
-          user._id,
-          { $set: { cart: cart?._id } },
-          { session },
-        );
-      } else {
-        // Merge existing cart items with shopping list items
-        const existingItemsMap = new Map<
-          string,
-          { product: Types.ObjectId; quantity: number }
-        >();
-
-        cart.items.forEach((item) => {
-          existingItemsMap.set(item.product.toString(), {
-            product: item.product,
-            quantity: item.quantity,
-          });
-        });
-
-        cartItems.forEach((item) => {
-          const productId = item.product.toString();
-          if (existingItemsMap.has(productId)) {
-            existingItemsMap.get(productId)!.quantity += item.quantity;
-          } else {
-            existingItemsMap.set(productId, item);
-          }
-        });
-
-        const mergedItems = Array.from(existingItemsMap.values());
-
-        cart = await this.cartModel.findOneAndUpdate(
-          { _id: cart._id },
-          {
-            $set: {
-              items: mergedItems,
-              updatedAt: new Date(),
-            },
-          },
-          { new: true, session },
-        );
-      }
+      let cart = await this.getOrCreateCart({
+        _id: user._id,
+        email: user.email,
+      });
 
       await session.commitTransaction();
 
@@ -1130,71 +1174,66 @@ export class UsersService {
 
   ////////////////////////////////////////
   //cart related stuff
-  async getCart(
-    email: string,
-  ): Promise<{ statusCode: number; message: string; data?: any }> {
+  async getCart(email: string): Promise<RPCResponseObject> {
+    const session = await this.userModel.startSession();
+    session.startTransaction();
     try {
       //  Validate email format
       if (!email || typeof email !== 'string' || !email.includes('@')) {
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid email format',
         };
       }
 
       //check user exist
-      const userExists = await this.userModel.exists({ email }).lean();
-      if (!userExists) {
+      const user = await this.userModel.findOne({ email }).lean();
+      if (!user) {
         return {
           statusCode: 404,
+          success: false,
           message: 'User not found',
         };
       }
 
-      //
-      const cart = await this.cartModel
-        .findOne({ email })
-        .populate({
-          path: 'items.product',
-          model: 'Product',
-          select: '_id name price imageLinks', // Only include necessary fields
-        })
-        .lean();
+      let cart = await this.getOrCreateCart(user);
+
+      cart = await cart?.populate({
+        path: 'items.product',
+        model: 'Product',
+        select: '_id name price imageLinks', // Only include necessary fields
+      });
 
       if (!cart) {
         return {
           statusCode: 200,
+          success: true,
           message: 'Cart is empty',
           data: { items: [] },
         };
       }
 
-      // Transform the cart data
-      const transformedCart = {
-        ...cart,
-        items: cart.items.map((item) => ({
-          ...item,
-          product: item.product || null, // Handle cases where product might be deleted
-        })),
-      };
-
       return {
         statusCode: 200,
+        success: true,
         message: 'Cart retrieved successfully',
-        data: transformedCart,
+        data: cart,
       };
     } catch (error) {
+      session.abortTransaction();
       console.error('Error fetching cart:', error);
       return {
         statusCode: 500,
         message: 'Failed to fetch cart',
+        success: false,
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
+    } finally {
+      session.endSession();
     }
   }
-  async clearCart(
-    email: string,
-  ): Promise<{ statusCode: number; message: string; data?: any }> {
+  async clearCart(email: string): Promise<RPCResponseObject> {
     const session = await this.cartModel.startSession();
     session.startTransaction();
 
@@ -1204,6 +1243,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid email format',
         };
       }
@@ -1219,6 +1259,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 404,
+          success: false,
           message: 'User not found',
         };
       }
@@ -1254,6 +1295,7 @@ export class UsersService {
         await session.commitTransaction();
         return {
           statusCode: 200,
+          success: true,
           message: 'Cart created and cleared successfully',
           data: { items: [] },
         };
@@ -1262,6 +1304,7 @@ export class UsersService {
       await session.commitTransaction();
       return {
         statusCode: 200,
+        success: true,
         message: 'Cart cleared successfully',
         data: { items: [] },
       };
@@ -1270,6 +1313,7 @@ export class UsersService {
       console.error('Error clearing cart:', error);
       return {
         statusCode: 500,
+        success: false,
         message: 'Failed to clear cart',
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
@@ -1287,7 +1331,7 @@ export class UsersService {
     productId: string;
     quantity?: number;
     action: string;
-  }): Promise<{ statusCode: number; message: string; data?: any }> {
+  }): Promise<RPCResponseObject> {
     const session = await this.cartModel.startSession();
     session.startTransaction();
 
@@ -1297,6 +1341,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid product ID format',
         };
       }
@@ -1307,6 +1352,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid action specified',
         };
       }
@@ -1315,6 +1361,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 400,
+          success: false,
           message: 'Invalid quantity for set action',
         };
       }
@@ -1330,6 +1377,7 @@ export class UsersService {
         await session.abortTransaction();
         return {
           statusCode: 404,
+          success: false,
           message: 'User not found',
         };
       }
@@ -1337,40 +1385,31 @@ export class UsersService {
       // 3. Find or create cart
       let cart = await this.cartModel.findOne({ email }).session(session);
 
-      if (!cart) {
-        cart = await this.cartModel.create(
-          [
-            {
-              email: user.email,
-              items: [],
-              updatedAt: new Date(),
-            },
-          ],
-          { session },
-        )[0];
-
-        await this.userModel.findByIdAndUpdate(
-          user._id,
-          { $set: { cart: cart?._id } },
-          { session },
-        );
+      if (!cart?.items) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'Cart is empty',
+        };
       }
 
       const productObjectId = new Types.ObjectId(productId);
       const existingItemIndex = cart?.items.findIndex((item) =>
         item.product.equals(productObjectId),
-      );
+      ) as number;
 
-      if (!(existingItemIndex && cart?.items)) {
+      if (existingItemIndex === -1 && action !== 'add') {
         await session.abortTransaction();
         return {
           statusCode: 404,
-          message: 'Either cart is empty or item not found',
+          success: false,
+          message: 'Item not found in cart',
         };
       }
 
       // 4. Handle different actions
-      let updateOperation;
+      let updateOperation: any;
       let responseMessage = 'Cart updated successfully';
 
       switch (action) {
@@ -1444,6 +1483,7 @@ export class UsersService {
             await session.abortTransaction();
             return {
               statusCode: 404,
+              success: false,
               message: 'Item not found in cart',
             };
           }
@@ -1458,6 +1498,7 @@ export class UsersService {
             await session.abortTransaction();
             return {
               statusCode: 404,
+              success: false,
               message: 'Item not found in cart',
             };
           }
@@ -1465,7 +1506,7 @@ export class UsersService {
       }
 
       // 5. Apply the update
-      const updatedCart = await this.cartModel
+      await this.cartModel
         .findOneAndUpdate(
           { _id: cart?._id },
           {
@@ -1481,14 +1522,15 @@ export class UsersService {
 
       return {
         statusCode: 200,
+        success: true,
         message: responseMessage,
-        data: updatedCart,
       };
     } catch (error) {
       await session.abortTransaction();
       console.error('Error updating cart:', error);
       return {
         statusCode: 500,
+        success: false,
         message: 'Failed to update cart',
         ...(process.env.NODE_ENV === 'development' && { error: error.message }),
       };
@@ -1496,15 +1538,412 @@ export class UsersService {
       session.endSession();
     }
   }
-  async orderUpdate() {
-    //request changes in order done by  user like cancel, return, replace
+  async orderUpdate({
+    orderId,
+    action,
+    reason,
+  }: {
+    orderId: string;
+    action: 'cancel' | 'return' | 'replace';
+    reason?: string;
+  }): Promise<RPCResponseObject> {
+    const session = await this.orderModel.startSession();
+    session.startTransaction();
+
+    try {
+      if (!Types.ObjectId.isValid(orderId)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid order ID format',
+        };
+      }
+
+      const order = await this.orderModel.findById(orderId).session(session);
+
+      if (!order) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'Order not found',
+        };
+      }
+
+      let updateResult;
+      let statusUpdate = {
+        property: action.toUpperCase(),
+        time: new Date(),
+      };
+
+      switch (action) {
+        case 'cancel':
+          if (order.status.some((s) => s.property === 'SHIPPED')) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              success: false,
+              message: 'Cannot cancel already shipped order',
+            };
+          }
+          updateResult = await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              $push: { status: statusUpdate },
+              $set: { description: reason || 'Order cancelled' },
+            },
+            { new: true, session },
+          );
+          break;
+
+        case 'return':
+          if (!order.status.some((s) => s.property === 'DELIVERED')) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              success: false,
+              message: 'Only delivered orders can be returned',
+            };
+          }
+          updateResult = await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              $push: { status: statusUpdate },
+              $set: { description: reason || 'Return requested' },
+            },
+            { new: true, session },
+          );
+          break;
+
+        case 'replace':
+          if (!order.status.some((s) => s.property === 'DELIVERED')) {
+            await session.abortTransaction();
+            return {
+              statusCode: 400,
+              success: false,
+              message: 'Only delivered orders can be replaced',
+            };
+          }
+          updateResult = await this.orderModel.findByIdAndUpdate(
+            orderId,
+            {
+              $push: { status: statusUpdate },
+              $set: { description: reason || 'Replacement requested' },
+            },
+            { new: true, session },
+          );
+          break;
+
+        default:
+          await session.abortTransaction();
+          return {
+            statusCode: 400,
+            success: false,
+            message: 'Invalid action specified',
+          };
+      }
+
+      await session.commitTransaction();
+      return {
+        statusCode: 200,
+        success: true,
+        message: `Order ${action} request processed successfully`,
+        data: { orderId: updateResult._id },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error(`Error processing order ${action}:`, error);
+      return {
+        statusCode: 500,
+        success: false,
+        message: `Failed to process order ${action}`,
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
   }
 
-  async cartBuy() {
-    //allows to buy all items of cart , after order is generated cart is discarded/deleted
+  async cartBuy({
+    email,
+    paymentMode,
+    address,
+  }: {
+    email: string;
+    paymentMode: string;
+    address: any;
+  }): Promise<RPCResponseObject> {
+    const session = await this.cartModel.startSession();
+    session.startTransaction();
+
+    try {
+      // Validate inputs
+      if (!this.validateEmail(email)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid email format',
+        };
+      }
+
+      // Get user with cart populated
+      const user = await this.userModel
+        .findOne({ email })
+        .populate({
+          path: 'cart',
+          populate: {
+            path: 'items.product',
+            model: 'Product',
+          },
+        })
+        .session(session);
+
+      if (!user || !user.cart) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'User or cart not found',
+        };
+      }
+
+      const cart = user.cart as any;
+
+      // Validate cart items
+      if (!cart.items || cart.items.length === 0) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Cart is empty',
+        };
+      }
+
+      // Check product availability and stock
+      for (const item of cart.items) {
+        const stockCheck = await this.validateProductStock(
+          item.product._id,
+          item.quantity,
+          session,
+        );
+        if (stockCheck) {
+          await session.abortTransaction();
+          return stockCheck;
+        }
+      }
+
+      // Prepare order items
+      const orderItems = cart.items.map((item) => ({
+        product: item.product._id,
+        quantity: item.quantity,
+        originalPrice: item.product.price,
+        finalPrice: item.product.price, // Could apply discounts here
+      }));
+
+      // Calculate totals
+      const totals = this.calculateOrderTotals(orderItems);
+
+      // Create order
+      const order = await this.orderModel.create(
+        [
+          {
+            email,
+            address,
+            items: orderItems,
+            totalAmount: totals,
+            paymentMode,
+            payment: 'pymt_id',
+            status: [{ property: 'CREATED', time: new Date() }],
+          },
+        ],
+        { session },
+      );
+
+      // Update product stock
+      for (const item of cart.items) {
+        await this.ProductModel.findByIdAndUpdate(
+          item.product._id,
+          { $inc: { stockQuantity: -item.quantity } },
+          { session },
+        );
+      }
+
+      // Clear cart
+      await this.cartModel.findByIdAndUpdate(
+        cart._id,
+        { $set: { items: [] } },
+        { session },
+      );
+
+      // Link order to user
+      await this.userModel.findByIdAndUpdate(
+        user._id,
+        { $push: { orders: order[0]._id } },
+        { session },
+      );
+
+      await session.commitTransaction();
+      return {
+        statusCode: 200,
+        success: true,
+        message: 'Order placed successfully',
+        data: { orderId: order[0]._id },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error processing cart purchase:', error);
+      return {
+        statusCode: 500,
+        success: false,
+        message: 'Failed to process purchase',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
   }
 
-  async cartBuyDirect() {
-    //allows to buy single item directly, for buy now
+  async cartBuyDirect({
+    email,
+    productId,
+    quantity = 1,
+    paymentMode,
+    address,
+  }: {
+    email: string;
+    productId: string;
+    quantity?: number;
+    paymentMode: string;
+    address: any;
+  }): Promise<RPCResponseObject> {
+    const session = await this.orderModel.startSession();
+    session.startTransaction();
+
+    try {
+      // Validate inputs
+      if (!this.validateEmail(email)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid email format',
+        };
+      }
+
+      if (!Types.ObjectId.isValid(productId)) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid product ID format',
+        };
+      }
+
+      if (typeof quantity !== 'number' || quantity < 1) {
+        await session.abortTransaction();
+        return {
+          statusCode: 400,
+          success: false,
+          message: 'Invalid quantity',
+        };
+      }
+
+      // Get user and product
+      const user = await this.userModel.findOne({ email }).session(session);
+
+      if (!user) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'User not found',
+        };
+      }
+
+      const product =
+        await this.ProductModel.findById(productId).session(session);
+
+      if (!product) {
+        await session.abortTransaction();
+        return {
+          statusCode: 404,
+          success: false,
+          message: 'Product not found',
+        };
+      }
+
+      // Validate stock
+      const stockCheck = await this.validateProductStock(
+        product._id,
+        quantity,
+        session,
+      );
+      if (stockCheck) {
+        await session.abortTransaction();
+        return stockCheck;
+      }
+
+      // Prepare order item
+      const orderItem = {
+        product: product._id,
+        quantity,
+        originalPrice: product.price,
+        finalPrice: product.price, // Could apply discounts here
+      };
+
+      // Calculate totals
+      const totals = this.calculateOrderTotals([orderItem]);
+
+      // Create order
+      const order = await this.orderModel.create(
+        [
+          {
+            email,
+            address,
+            items: [orderItem],
+            totalAmount: totals,
+            paymentMode,
+            payment: 'pymt_id',
+            status: [{ property: 'CREATED', time: new Date() }],
+          },
+        ],
+        { session },
+      );
+
+      // Update product stock
+      await this.ProductModel.findByIdAndUpdate(
+        product._id,
+        { $inc: { stockQuantity: -quantity } },
+        { session },
+      );
+
+      // Link order to user
+      await this.userModel.findByIdAndUpdate(
+        user._id,
+        { $push: { orders: order[0]._id } },
+        { session },
+      );
+
+      await session.commitTransaction();
+      return {
+        statusCode: 200,
+        success: true,
+        message: 'Direct purchase completed successfully',
+        data: { orderId: order[0]._id },
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      console.error('Error processing direct purchase:', error);
+      return {
+        statusCode: 500,
+        success: false,
+        message: 'Failed to process direct purchase',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message }),
+      };
+    } finally {
+      session.endSession();
+    }
   }
 }

@@ -3,20 +3,28 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import LoginDialog from "./LoginDialog";
+import { useEffect } from "react";
+import { useUserStore } from "@/store/UserStore";
+import { Badge } from "./ui/badge";
+import useCartStore from "@/store/CartStore";
+import Image from "next/image";
+import clsx from "clsx";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-  };
+  const { user, fetchUser } = useUserStore();
+  const { cart } = useCartStore();
 
   const handleProfileClick = () => {
     if (!isLoggedIn) {
       setIsDialogOpen(true);
     }
   };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
     <div className="sticky top-0 left-0 w-full z-50 shadow-md h-16 bg-white px-4 md:px-6">
@@ -48,7 +56,7 @@ export default function Navbar() {
           <input
             type="text"
             placeholder="Search"
-            className="h-10 w-[24rem] md:w-[30rem] px-4 border border-gray-300 hover:border-gray-400 rounded-xl focus:outline-none 
+            className="h-10 w-full max-w-[24rem] md:max-w-[30rem] px-4 border border-gray-300 hover:border-gray-400 rounded-xl focus:outline-none 
               focus:ring-2 focus:ring-gray-300 bg-white shadow-sm"
           />
 
@@ -79,24 +87,26 @@ export default function Navbar() {
                     className="w-7 h-7 rounded-full mt-0.5"
                   />
                 </div>
-                <div className="text-xs">Login</div>
+                <div className="text-xs text-nowrap truncate">
+                  {user?.name ?? "Login"}
+                </div>
               </div>
             )}
 
             <LoginDialog
               isOpen={isDialogOpen}
               onOpenChange={setIsDialogOpen}
-              onLoginSuccess={handleLoginSuccess}
+              userName={user?.name}
             />
 
             {/* Shopping Cart Link */}
-            <div>
-              <div className="flex flex-col">
+            <div className="text-center flex flex-col gap-1">
+              <div className="flex flex-col relative">
                 <Link href="/cart" className="cursor-pointer">
-                  <img src="/bag.svg" alt="bag" className="w-7 h-7 mt-0.5" />
+                  <Image width={28} height={28} src="/bag.svg" alt="bag" className={clsx("mt-0.5", (cart?.length && cart.length > 0) && 'filter-green-effect' )} />
                 </Link>
               </div>
-              <div className="text-xs ml-1">Cart</div>
+              <div className="text-xs">Cart</div>
             </div>
           </div>
         </div>

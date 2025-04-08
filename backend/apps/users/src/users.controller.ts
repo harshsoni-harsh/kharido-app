@@ -1,11 +1,10 @@
-import { Controller, Get, HttpException, Logger } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { MESSAGES } from '@nestjs/core/constants';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CreateUserDto } from '@libs/shared/dto/create/createUser.dto';
-import { AddressDTO } from '@libs/shared/dto/common/address.dto';
-import { CreateReviewDTO } from '@libs/shared/dto/create/createReview.dto';
-import { UpdateReviewDTO } from '@libs/shared/dto/update/updateReview.dto';
+import { CreateUserDto } from '@shared/dto/create/createUser.dto';
+import { AddressDTO } from '@shared/dto/common/address.dto';
+import { CreateReviewDTO } from '@shared/dto/create/createReview.dto';
+import { UpdateReviewDTO } from '@shared/dto/update/updateReview.dto';
 
 
 @Controller()
@@ -100,5 +99,43 @@ export class UserController {
     action: string 
   }) {
     return this.userService.cartUpdate(payload);
+  }
+
+  @MessagePattern('USER_ORDER_UPDATE')
+  async orderUpdate(@Payload() payload: {
+    orderId: string;
+    action: 'cancel' | 'return' | 'replace';
+    reason?: string;
+  }) {
+    Logger.log(`Received order update request`, payload);
+    return this.userService.orderUpdate(payload);
+  }
+
+  @MessagePattern('USER_CART_BUY')
+  async cartBuy(@Payload() payload: {
+    email: string;
+    paymentMode: string;
+    address: AddressDTO;
+  }) {
+    Logger.log(`Received cart buy request`, { 
+      email: payload.email,
+      paymentMode: payload.paymentMode 
+    });
+    return this.userService.cartBuy(payload);
+  }
+
+  @MessagePattern('USER_CART_BUY_DIRECT')
+  async cartBuyDirect(@Payload() payload: {
+    email: string;
+    productId: string;
+    quantity?: number;
+    paymentMode: string;
+    address: AddressDTO;
+  }) {
+    Logger.log(`Received direct buy request`, {
+      email: payload.email,
+      productId: payload.productId
+    });
+    return this.userService.cartBuyDirect(payload);
   }
 }

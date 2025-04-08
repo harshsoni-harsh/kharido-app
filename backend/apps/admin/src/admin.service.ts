@@ -8,21 +8,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist';
-import { Cart } from '@libs/shared/schemas/cart.schema';
-import { Order } from '@libs/shared/schemas/order.schema';
-import { Product } from '@libs/shared/schemas/product.schema';
-import { Review } from '@libs/shared/schemas/review.schema';
-import { ShoppingList } from '@libs/shared/schemas/shoppingList.schema';
-import { User } from '@libs/shared/schemas/user.schema';
+import { Cart } from '@shared/schemas/cart.schema';
+import { Order } from '@shared/schemas/order.schema';
+import { Product } from '@shared/schemas/product.schema';
+import { Review } from '@shared/schemas/review.schema';
+import { ShoppingList } from '@shared/schemas/shoppingList.schema';
+import { User } from '@shared/schemas/user.schema';
 import mongoose, { ClientSession, Model, Types } from 'mongoose';
-import { CreateProductDTO } from '@libs/shared/dto/create/createProduct.dto';
-import { UpdateProductDTO } from '@libs/shared/dto/update/updateProduct.dto';
+import { CreateProductDTO } from '@shared/dto/create/createProduct.dto';
+import { UpdateProductDTO } from '@shared/dto/update/updateProduct.dto';
 import { STATUS_CODES } from 'http';
-import { CreateCategoryDTO } from '@libs/shared/dto/create/createCategory.dto';
-import { Category } from '@libs/shared/schemas/category.schema';
-import { UpdateCategoryDTO } from '@libs/shared/dto/update/updateCategory.dto';
+import { CreateCategoryDTO } from '@shared/dto/create/createCategory.dto';
+import { Category } from '@shared/schemas/category.schema';
+import { UpdateCategoryDTO } from '@shared/dto/update/updateCategory.dto';
 import { count } from 'console';
-import { Payment } from '@libs/shared/schemas/payment.schema';
+import { Payment } from '@shared/schemas/payment.schema';
 
 @Injectable()
 export class AdminService {

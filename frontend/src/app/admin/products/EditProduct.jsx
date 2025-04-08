@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
 
 export default function EditProduct({
   isEditProductOpen,
@@ -30,6 +31,7 @@ export default function EditProduct({
   category,
   updateProduct,
   handleCategories,
+  setSelectedProduct,
 }) {
   return (
     <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
@@ -98,26 +100,21 @@ export default function EditProduct({
                   Category
                 </Label>
                 <Select
-                  defaultValue={
-                    ""
-                    // selectedProduct.category?.toLowerCase()
-                  }
+                  defaultValue={selectedProduct.category
+                    ?.map((c) => c._id)
+                    ?.at(0)}
                   onValueChange={(value) => {
-                    console.log("Selected ID:", value);
-                    handleCategories(value); // Call your handler function
+                    handleCategories(value);
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select categories" />
                   </SelectTrigger>
-                  <SelectContent
-                    className="bg-white"
-          
-                    
-                    
-                  >
-                    {category.map((item) => (
-                      <SelectItem value={item._id}>{item.name}</SelectItem>
+                  <SelectContent className="bg-white">
+                    {category?.map((item) => (
+                      <SelectItem key={item._id} value={item._id}>
+                        {item.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -145,8 +142,6 @@ export default function EditProduct({
                   placeholder="Enter product description"
                   defaultValue={selectedProduct.description}
                   onChange={(e) => {
-                    console.log(selectedProduct);
-
                     selectedProduct.description = e.target.value;
                   }}
                 />
@@ -157,20 +152,38 @@ export default function EditProduct({
                 </Label>
                 <div className="mt-2 flex items-center gap-4">
                   <div className="h-24 w-24 rounded-md border">
-                    {/* <Image
-                      src={selectedProduct.image || "/placeholder.svg"}
-                      alt={selectedProduct.name}
+                    <Image
+                      src={
+                        selectedProduct?.imageLinks?.at(0) ?? "/placeholder.svg"
+                      }
+                      alt={selectedProduct?.name ?? "image"}
                       width={96}
                       height={96}
-                      className="h-full w-full object-cover"
-                    /> */}
+                      className="h-full w-full object-contain"
+                    />
                   </div>
-                  <Button variant="outline" className="h-24 w-24">
+                  {/* <Button variant="outline" className="h-24 w-24">
                     <div className="flex flex-col items-center gap-1">
                       <Upload className="h-4 w-4" />
                       <span className="text-xs">Upload</span>
                     </div>
-                  </Button>
+                  </Button> */}
+                  <div className="col-span-2 grow">
+                    <Label htmlFor="edit-imageLink" className="mb-2 block">
+                      Image link
+                    </Label>
+                    <Input
+                      id="edit-imageLink"
+                      placeholder="Enter Image Link"
+                      value={selectedProduct.imageLinks?.at(0)}
+                      onChange={(e) => {
+                        setSelectedProduct((prev) => ({
+                          ...prev,
+                          imageLinks: [e.target.value],
+                        }));
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

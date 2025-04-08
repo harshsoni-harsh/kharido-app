@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
 
 export default function CartSummary() {
-  const { cart, totalPrice } = useCartStore();
+  const { cart } = useCartStore();
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [isPromoApplied, setIsPromoApplied] = useState(false);
@@ -44,21 +44,21 @@ export default function CartSummary() {
       <CardContent className="space-y-4">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>₹{subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping Charges</span>
-          <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+          <span>{shipping === 0 ? "Free" : `₹₹{shipping.toFixed(2)}`}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Tax (Including GST)</span>
-          <span>${tax.toFixed(2)}</span>
+          <span>₹{tax.toFixed(2)}</span>
         </div>
 
         {discount > 0 && (
           <div className="flex justify-between text-green-600">
             <span>Discount</span>
-            <span>-${discount.toFixed(2)}</span>
+            <span>-₹{discount.toFixed(2)}</span>
           </div>
         )}
 
@@ -66,7 +66,7 @@ export default function CartSummary() {
 
         <div className="flex justify-between font-medium text-lg">
           <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          <span>₹{total.toFixed(2)}</span>
         </div>
 
         <div className="pt-4">
