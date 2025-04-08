@@ -140,4 +140,23 @@ export class UsersController {
       body.quantity,
     );
   }
+
+  @Post('buy-cart')
+  buyCart(
+    @Body()
+    body: {
+      email: string;
+      paymentMode:string
+      address: AddressDTO,
+    },
+  ) {
+    return this.usersService.cartBuy(
+      body.email,
+      body.paymentMode,
+      body.address
+    );
+  }
+
+
+
 }

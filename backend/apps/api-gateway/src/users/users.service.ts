@@ -145,4 +145,19 @@ export class UsersService {
     )) as RPCResponseObject;
     return handleResponse(res);
   }
+  async cartBuy(
+    email:string,
+    paymentMode:string,
+    address:AddressDTO
+  ){
+    const res = (await firstValueFrom(
+      this.usersClient.send('USER_CART_BUY', {
+        email,
+        paymentMode,
+        address
+      }),
+    )) as RPCResponseObject;
+    return handleResponse(res);
+
+  }
 }

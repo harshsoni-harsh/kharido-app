@@ -1744,17 +1744,24 @@ export class UsersService {
 
       // Calculate totals
       const totals = this.calculateOrderTotals(orderItems);
+      const count  = await this.orderModel.countDocuments().exec()
+      
+      const oid = "ORD-"+(count+1).toString();
 
       // Create order
       const order = await this.orderModel.create(
         [
           {
+            id : oid,
+            createdAt: new Date().toISOString(),
+            description: "payment to be verified",
             email,
             address,
             items: orderItems,
+            trackingLink: `https://tracker.example.com/${oid}`,
             totalAmount: totals,
             paymentMode,
-            payment: 'pymt_id',
+            payment: null,
             status: [{ property: 'CREATED', time: new Date() }],
           },
         ],
