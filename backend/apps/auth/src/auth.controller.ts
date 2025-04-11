@@ -16,13 +16,21 @@ export class AuthController {
     try {
       return await this.authService.handleGoogleCallback(data.code);
     } catch (err) {
-      Logger.error(err.response?.text ?? err)
-      throw new RpcException("Bad Request")
+      Logger.error(err.response?.text ?? err, 'AuthController');
+      throw new RpcException('Bad Request');
     }
   }
 
   @MessagePattern('logout')
-  logout() {
-    return { message: 'Logged out' };
+  async logout(@Payload() data: { googleAccessToken: string }) {
+    try {
+      if (data?.googleAccessToken) {
+        await this.authService.revokeGoogleToken(data.googleAccessToken);
+      }
+      return { message: 'Logged out successfully' };
+    } catch (err) {
+      Logger.error(err.message ?? err, 'AuthController');
+      throw new RpcException('Failed to log out');
+    }
   }
 }

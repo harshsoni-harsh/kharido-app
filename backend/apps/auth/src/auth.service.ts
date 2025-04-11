@@ -26,6 +26,8 @@ export class AuthService {
   googleAuthUrl() {
     return this.client.generateAuthUrl({
       scope: ['openid', 'email', 'profile'],
+      prompt: 'select_account', // Force account chooser
+      access_type: 'offline', // Ensure refresh token is provided
     });
   }
 
@@ -47,7 +49,22 @@ export class AuthService {
       googleId: data.id,
     });
 
-    return this.generateTokens(user);
+    const jwtTokens = await this.generateTokens(user);
+
+    return {
+      ...jwtTokens,
+      googleAccessToken: tokens.access_token, // Return Google access token for cookie storage
+    };
+  }
+
+  async revokeGoogleToken(accessToken: string): Promise<void> {
+    try {
+      await this.client.revokeToken(accessToken);
+      Logger.log('Google access token revoked successfully', 'AuthService');
+    } catch (error) {
+      Logger.error('Error revoking Google token:', error, 'AuthService');
+      throw new InternalServerErrorException('Failed to revoke Google token');
+    }
   }
 
   async generateTokens(user: any) {
@@ -84,6 +101,7 @@ export class AuthService {
     ) {
       Logger.log(
         `${creationResult.statusCode} ${JSON.stringify(creationResult?.data)}`,
+        'AuthService',
       );
       throw new Error('Failed to create user');
     }

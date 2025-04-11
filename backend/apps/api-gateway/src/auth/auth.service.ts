@@ -25,10 +25,11 @@ export class AuthService {
     return tokens;
   }
 
-  async logout() {
+  async logout(googleAccessToken:string) {
     await firstValueFrom(
       this.authClient.send('logout', {
         apiSecret: process.env.API_GATEWAY_SECRET,
+        googleAccessToken:googleAccessToken
       }),
     );
   }

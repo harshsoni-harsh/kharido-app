@@ -42,8 +42,27 @@ export default function LoginDialog({ isOpen, onOpenChange, userName }) {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout");
-    window.location.reload();
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies
+      });
+  
+      if (!response.ok) {
+        throw new Error('Logout failed');
+      }
+      
+      // Cookies are cleared server-side; no client-side action needed
+      // Optionally redirect if the gateway doesn't handle it
+      // window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    finally
+    {window.location.href ='/api/auth/google'}
   };
   const router = useRouter()
 
