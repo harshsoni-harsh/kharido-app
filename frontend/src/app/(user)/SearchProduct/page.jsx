@@ -1,42 +1,33 @@
 "use client";
 
-import Page from "../products/page";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import ProductCard from "@/components/ProductCard"; // assuming this path
-import usePublicStore from "@/store/PublicStore";
+import { useEffect, useState, Suspense } from "react";
+import ProductCard from "@/components/ProductCard";
 import axios from "axios";
 
-export default function searchPage() {
-  // const { query } =  params;
+const Search = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
-  const { categories, products, loading, fetchCategories, fetchAllProducts } =
-    usePublicStore();
-
   const searchParams = useSearchParams();
-  const searchQuery = searchParams.get("query")?.toLocaleLowerCase() || "";
+  const searchQuery = searchParams.get("query")?.toLowerCase() || "";
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchSearchProducts();
-  },[searchQuery])
+  }, [searchQuery]);
+
   async function fetchSearchProducts() {
     try {
-      console.log(searchQuery)
-      setFilteredProducts([])
+      setFilteredProducts([]);
       const res = await axios.post("/api/public/search-products", {
         query: searchQuery,
         sortOptions: {
           field: "price",
           order: "asc",
-        }
-        
+        },
       });
-      console.log(res.data);
       setFilteredProducts(res.data.data.results);
     } catch (error) {
-      console.log("Search failed", error);
+      console.error("Search failed", error);
     }
   }
 
@@ -65,4 +56,12 @@ export default function searchPage() {
       )}
     </div>
   );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense>
+      <Search />
+    </Suspense>
+  )
 }
