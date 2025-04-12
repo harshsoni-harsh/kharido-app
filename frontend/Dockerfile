@@ -1,10 +1,13 @@
 FROM node:23-slim AS base
 WORKDIR /app
-COPY package*.json ./
-
-RUN npm i
-
 COPY . .
+
+RUN npm i -g pnpm
+
+RUN pnpm config set auto-install-peers true
+RUN pnpm config set auto-build true
+
+RUN pnpm i
 
 RUN npm run build
 

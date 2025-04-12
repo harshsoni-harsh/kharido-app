@@ -1,3 +1,5 @@
+const BACKEND_URI = process.env.BACKEND_URI ?? 'http://localhost:4000'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
@@ -5,7 +7,7 @@ const nextConfig = {
       beforeFiles: [
         {
           source: "/api/:path*",
-          destination: process.env.BACKEND_URI + "/:path*",
+          destination: BACKEND_URI + "/:path*",
         },
       ],
     };
