@@ -99,7 +99,7 @@ export default function UsersPage() {
 
     const res = await axios.post("/api/admin/users/range",{
       startIndex:0,
-      endIndex: 6
+      endIndex: 100
     })
     console.log(res)
     setUserList(res.data.data)

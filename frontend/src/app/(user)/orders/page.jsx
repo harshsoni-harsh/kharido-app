@@ -27,7 +27,7 @@ export default function AllOrdersPage() {
                 setOrders(response.data)  
             } catch (err) {
                 console.error("Error fetching orders", err)
-                setError("Failed to fetch orders.")
+                // setError("Failed to fetch orders.")
             } finally {
                 setLoading(false)
             }

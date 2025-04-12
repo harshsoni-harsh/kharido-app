@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import { useUserStore } from "@/store/UserStore"
 import useCartStore from "@/store/CartStore"
+import Link from "next/link"
 
 export default function CheckoutPage() {
   const { user } = useUserStore()
@@ -58,7 +59,7 @@ export default function CheckoutPage() {
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="bg-white shadow-md rounded-lg p-6 space-y-4">
         <h2 className="text-2xl font-semibold">Select Shipping Address</h2>
-        {addresses.length === 0 && <p className="text-gray-500">No saved addresses found.</p>}
+        {addresses.length === 0 && <p className="text-gray-500">No saved addresses found. <span> <Link href="/addresses" >Add new Address</Link> </span></p>}
         {addresses.map((addr, index) => (
           <label key={index} className="block border p-3 rounded-md mb-2 cursor-pointer hover:bg-gray-50">
             <input
@@ -70,7 +71,10 @@ export default function CheckoutPage() {
             />
             {addr.name}, {addr.street}, {addr.city} - {addr.pin}
           </label>
-        ))}
+
+        ))
+        }
+        <span> <Link className="text-blue-600 text-sm underline" href="/addresses" >Add new Address</Link> </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
