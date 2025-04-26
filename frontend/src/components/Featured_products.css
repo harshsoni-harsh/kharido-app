@@ -1,43 +1,42 @@
 .list {
-    display: grid;
-    gap: 1.5rem; /* Equivalent to Tailwind's gap-6 */
-    width: 100%;
-    max-width: 90rem; /* Equivalent to Tailwind's max-w-8xl */
-    align-items: center;
+  display: grid;
+  gap: 1.5rem; /* Equivalent to Tailwind's gap-6 */
+  width: 100%;
+  max-width: 90rem; /* Equivalent to Tailwind's max-w-8xl */
+  align-items: center;
+}
+
+/* Mobile Screens (Below 640px) */
+@media (max-width: 639px) {
+  .list {
+    grid-template-columns: repeat(1, minmax(0, 1fr)); /* 1 column */
   }
-  
-  /* Mobile Screens (Below 640px) */
-  @media (max-width: 639px) {
-    .list {
-      grid-template-columns: repeat(1, minmax(0, 1fr)); /* 1 column */
-    }
+}
+
+/* Small Screens (640px to 767px) */
+@media (min-width: 640px) and (max-width: 767px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 columns */
   }
-  
-  /* Small Screens (640px to 767px) */
-  @media (min-width: 640px) and (max-width: 767px) {
-    .list {
-      grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 columns */
-    }
+}
+
+/* Medium Screens (768px to 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 columns */
   }
-  
-  /* Medium Screens (768px to 1023px) */
-  @media (min-width: 768px) and (max-width: 1023px) {
-    .list {
-      grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 columns */
-    }
+}
+
+/* Large Screens (1024px to 1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .list {
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 columns */
   }
-  
-  /* Large Screens (1024px to 1279px) */
-  @media (min-width: 1024px) and (max-width: 1279px) {
-    .list {
-      grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 columns */
-    }
+}
+
+/* Extra Large Screens (1280px and above) */
+@media (min-width: 1280px) {
+  .list {
+    grid-template-columns: repeat(5, minmax(0, 1fr)); /* 5 columns */
   }
-  
-  /* Extra Large Screens (1280px and above) */
-  @media (min-width: 1280px) {
-    .list {
-      grid-template-columns: repeat(5, minmax(0, 1fr)); /* 5 columns */
-    }
-  }
-  
+}

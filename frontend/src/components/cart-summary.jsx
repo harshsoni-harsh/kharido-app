@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,10 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
+import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CartSummary() {
-  const router = useRouter()
+  const router = useRouter();
   const { cart } = useCartStore();
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -25,7 +25,7 @@ export default function CartSummary() {
 
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
-    0
+    0,
   );
   const shipping = cart.length === 0 ? 0 : subtotal > 50 ? 0 : 5.99;
   const tax = subtotal * 0.08;
@@ -37,7 +37,7 @@ export default function CartSummary() {
       setIsPromoApplied(true);
     }
   };
-  console.log(cart)
+  console.log(cart);
 
   return (
     <Card>
@@ -51,7 +51,7 @@ export default function CartSummary() {
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping Charges</span>
-          <span>{shipping === 0 ? "Free" : `₹₹{shipping.toFixed(2)}`}</span>
+          <span>{shipping === 0 ? "Free" : "₹₹{shipping.toFixed(2)}"}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Tax (Including GST)</span>
@@ -100,7 +100,7 @@ export default function CartSummary() {
       </CardContent>
       <CardFooter>
         <Button
-          onClick={()=>router.push('/checkout')}
+          onClick={() => router.push("/checkout")}
           className="w-full bg-green-500 mb-6 hover:bg-green-700"
           size="lg"
         >

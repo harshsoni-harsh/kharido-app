@@ -1,13 +1,35 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { ArrowUpDown, ChevronDown, Download, Eye, Search } from "lucide-react";
 import axios from "axios";
+import { ArrowUpDown, ChevronDown, Download, Eye, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import Loader from "@/components/Loader";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -16,31 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Loader from "@/components/Loader";
 
 export default function Order() {
   const [isViewOrderOpen, setIsViewOrderOpen] = useState(false);
@@ -93,19 +91,21 @@ export default function Order() {
     () => ({
       processing: totalorder.filter(
         (order) =>
-          order.status?.at(-1)?.property?.toLowerCase() === "processing"
+          order.status?.at(-1)?.property?.toLowerCase() === "processing",
       ),
       shipped: totalorder.filter(
-        (order) => order.status?.at(-1)?.property?.toLowerCase() === "shipped"
+        (order) => order.status?.at(-1)?.property?.toLowerCase() === "shipped",
       ),
       delivered: totalorder.filter(
-        (order) => order.status?.at(-1)?.property?.toLowerCase() === "delivered"
+        (order) =>
+          order.status?.at(-1)?.property?.toLowerCase() === "delivered",
       ),
       cancelled: totalorder.filter(
-        (order) => order.status?.at(-1)?.property?.toLowerCase() === "cancelled"
+        (order) =>
+          order.status?.at(-1)?.property?.toLowerCase() === "cancelled",
       ),
     }),
-    [totalorder]
+    [totalorder],
   );
 
   const handleViewOrder = (order) => {
@@ -286,7 +286,7 @@ export default function Order() {
                         <TableCell>
                           <Badge
                             variant={getStatusColor(
-                              order.status?.at(-1)?.property
+                              order.status?.at(-1)?.property,
                             )}
                             className="capitalize"
                           >
@@ -382,7 +382,7 @@ export default function Order() {
                             <TableCell>
                               <Badge
                                 variant={getStatusColor(
-                                  order.status?.at(-1)?.property
+                                  order.status?.at(-1)?.property,
                                 )}
                                 className="capitalize"
                               >
@@ -437,7 +437,7 @@ export default function Order() {
                     </TableBody>
                   </Table>
                 </TabsContent>
-              )
+              ),
             )}
           </Tabs>
         </CardContent>

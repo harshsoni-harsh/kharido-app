@@ -3,6 +3,7 @@
 import { ArrowUpDown, Trash } from "lucide-react";
 import Image from "next/image";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -12,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 
 export default function ProductTable({
   products,
@@ -21,8 +21,10 @@ export default function ProductTable({
   handleEditProduct,
 }) {
   function renderCategories(categoryIds) {
-    const categoryNames = categoryIds.map(id => categories?.find(category => category._id === id)?.name)
-    return categoryNames.join(" ")
+    const categoryNames = categoryIds.map(
+      (id) => categories?.find((category) => category._id === id)?.name,
+    );
+    return categoryNames.join(" ");
   }
   return (
     <Table>
@@ -76,7 +78,9 @@ export default function ProductTable({
               </TableCell>
               <TableCell className="font-medium">{product.name}</TableCell>
               <TableCell>₹{product.price}</TableCell>
-              <TableCell className={'truncate'}>{renderCategories(product.category)}</TableCell>
+              <TableCell className={"truncate"}>
+                {renderCategories(product.category)}
+              </TableCell>
               <TableCell>{product.stock}</TableCell>
               <TableCell>
                 <Badge
@@ -84,15 +88,15 @@ export default function ProductTable({
                     product.status === "In Stock"
                       ? "default"
                       : product.status === "Low Stock"
-                      ? "warning"
-                      : "destructive"
+                        ? "warning"
+                        : "destructive"
                   }
                   className={`${
                     product.status === "In Stock"
                       ? "bg-green-500 text-white"
                       : product.status === "Low Stock"
-                      ? "bg-white text-black"
-                      : "bg-red-500 text-white"
+                        ? "bg-white text-black"
+                        : "bg-red-500 text-white"
                   }`}
                 >
                   {product.status}
@@ -121,8 +125,8 @@ export default function ProductTable({
                       strokeLinejoin="round"
                       className="h-4 w-4"
                     >
-                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                      <path d="m15 5 4 4"></path>
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                      <path d="m15 5 4 4" />
                     </svg>
                   </Button>
                   <Button

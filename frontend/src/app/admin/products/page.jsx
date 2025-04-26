@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
+import { toast } from "sonner";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
 import ExportData from "./ExportData";
 import ProductTable from "./ProductTable";
-import { toast } from "sonner";
 
 export default function Products() {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);

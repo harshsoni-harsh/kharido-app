@@ -1,9 +1,6 @@
 "use client";
 
-import { Plus, Upload } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -11,10 +8,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -22,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 
 export default function EditProduct({
@@ -68,8 +65,8 @@ export default function EditProduct({
                   onChange={(e) => {
                     console.log(selectedProduct);
                     try {
-                      selectedProduct.price = parseFloat(
-                        e.target.value
+                      selectedProduct.price = Number.parseFloat(
+                        e.target.value,
                       ).toFixed(2);
                     } catch (e) {
                       console.log("not a number");
@@ -88,7 +85,7 @@ export default function EditProduct({
                   onChange={(e) => {
                     console.log(selectedProduct);
                     try {
-                      selectedProduct.stock = parseInt(e.target.value);
+                      selectedProduct.stock = Number.parseInt(e.target.value);
                     } catch (e) {
                       console.log("not a number");
                     }

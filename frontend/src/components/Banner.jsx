@@ -1,12 +1,9 @@
 "use client";
-import { Link } from "lucide-react";
-import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { useRouter } from 'next/navigation';
-
 
 function Banner() {
-  const router = useRouter()
+  const router = useRouter();
   return (
     <>
       <div className="container xl:mx-auto xl:px-20 px-4 mt-12 md:mt-24 flex flex-col md:flex-row md:justify-between items-center">
@@ -21,15 +18,18 @@ function Banner() {
               groceries. Free delivery on your first order!
             </p>
           </div>
-          <Button 
-          onClick = {()=>router.push('/products')}
-          className="h-10  w-22 rounded-xl bg-green-500 hover:bg-green-700 duration-300 cursor-pointer mt-6 text-white">
+          <Button
+            onClick={() => router.push("/products")}
+            className="h-10  w-22 rounded-xl bg-green-500 hover:bg-green-700 duration-300 cursor-pointer mt-6 text-white"
+          >
             Shop now
           </Button>
         </div>
         <div className="order-1 w-full md:w-1/2 max-h-full">
           <img
-            src={"https://res.cloudinary.com/dvjxfsqqx/image/upload/v1743965678/grocery_qcnkqu.png"}
+            src={
+              "https://res.cloudinary.com/dvjxfsqqx/image/upload/v1743965678/grocery_qcnkqu.png"
+            }
             width={550}
             height={460}
             className="xl:ml-auto max-md:min-w-full object-contain max-h-96"

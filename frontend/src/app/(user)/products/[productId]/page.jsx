@@ -1,16 +1,18 @@
-import Link from "next/link";
-import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import axios from "axios";
+import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
-const FRONTEND_URI = process.env.FRONTEND_URI ?? 'http://localhost:3000'
+const FRONTEND_URI = process.env.FRONTEND_URI ?? "http://localhost:3000";
 
 async function fetchProductDetails(productId) {
   try {
-    const res = await axios.post(`${FRONTEND_URI}/api/public/get-product`, { productId });
+    const res = await axios.post(`${FRONTEND_URI}/api/public/get-product`, {
+      productId,
+    });
     return res.data;
   } catch (error) {
     console.error("Error fetching products: ", error);
@@ -52,7 +54,10 @@ export default async function ProductPage({ params }) {
       <div className="grid md:grid-cols-2 gap-8">
         <div className="relative aspect-square">
           <Image
-            src={product?.imageLinks?.at(0) || "https://res.cloudinary.com/dvjxfsqqx/image/upload/v1743965678/grocery_qcnkqu.png"}
+            src={
+              product?.imageLinks?.at(0) ||
+              "https://res.cloudinary.com/dvjxfsqqx/image/upload/v1743965678/grocery_qcnkqu.png"
+            }
             alt={product?.name || "Product Image"}
             className="object-cover rounded-lg"
             width={400}
@@ -140,7 +145,7 @@ export default async function ProductPage({ params }) {
                               <span className="capitalize">{key}</span>
                               <span className="font-medium">{value}</span>
                             </li>
-                          )
+                          ),
                         )
                       : "No nutrition information available"}
                   </ul>

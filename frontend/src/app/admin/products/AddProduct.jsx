@@ -1,9 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +10,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,14 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus } from "lucide-react";
+import { useForm } from "react-hook-form";
 
 export default function AddProduct({
   isAddProductOpen,
@@ -45,7 +44,7 @@ export default function AddProduct({
       price: 0,
       stock: 0,
       description: "",
-      imageLink: ""
+      imageLink: "",
     },
   });
 
@@ -188,10 +187,7 @@ export default function AddProduct({
                 <FormItem>
                   <FormLabel>Image link</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Enter Image link"
-                      {...field}
-                    />
+                    <Textarea placeholder="Enter Image link" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

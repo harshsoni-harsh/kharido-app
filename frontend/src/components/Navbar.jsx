@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import LoginDialog from "./LoginDialog";
-import { useEffect } from "react";
-import { useUserStore } from "@/store/UserStore";
-import { Badge } from "./ui/badge";
 import useCartStore from "@/store/CartStore";
-import Image from "next/image";
+import { useUserStore } from "@/store/UserStore";
 import clsx from "clsx";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useEffect } from "react";
+import LoginDialog from "./LoginDialog";
 import { Button } from "./ui/button";
 
 export default function Navbar() {
@@ -34,7 +33,7 @@ export default function Navbar() {
     e.preventDefault(); // Prevent page reload
     if (searchQuery.trim()) {
       router.push(
-        `/SearchProduct?query=${encodeURIComponent(searchQuery.trim())}`
+        `/SearchProduct?query=${encodeURIComponent(searchQuery.trim())}`,
       );
     }
   };
@@ -44,7 +43,9 @@ export default function Navbar() {
       <div className=" text-black   flex flex-row  gap-4 md:gap-8 mt-3 justify-between">
         <div className="flex flex-row  gap-6 md:gap-10">
           <div className="px-4  text-3xl font-semibold">
-            <Link href="/" className="text-green-500">{`Khareedo`}</Link>
+            <Link href="/" className="text-green-500">
+              {"Khareedo"}
+            </Link>
           </div>
           <div>
             <div className="hidden lg:flex  items-center">
@@ -130,7 +131,7 @@ export default function Navbar() {
                     alt="bag"
                     className={clsx(
                       "mt-0.5",
-                      cart?.length && cart.length > 0 && "filter-green-effect"
+                      cart?.length && cart.length > 0 && "filter-green-effect",
                     )}
                   />
                 </Link>

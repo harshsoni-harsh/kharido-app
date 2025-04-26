@@ -1,20 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ArrowUpDown, ChevronDown, Download, Filter, MoreHorizontal, Search, Shield, User } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -22,13 +9,46 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import axios from "axios"
-import { useEffect } from "react"
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axios from "axios";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Download,
+  Filter,
+  MoreHorizontal,
+  Search,
+  Shield,
+  User,
+} from "lucide-react";
+import { useState } from "react";
+import { useEffect } from "react";
 
 // Sample user data
 const users = [
@@ -82,47 +102,44 @@ const users = [
     joined: "2023-04-18",
     lastLogin: "2023-06-30",
   },
-]
+];
 
 export default function UsersPage() {
-  const [isEditUserOpen, setIsEditUserOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
-  const[userList, setUserList]= useState([])
+  const [userList, setUserList] = useState([]);
 
-  useEffect(()=>{
-    getUsers()
+  useEffect(() => {
+    getUsers();
+  }, []);
 
-  },[])
-
-  async function getUsers(startIndex=0, endIndex=8) {
-
-    const res = await axios.post("/api/admin/users/range",{
-      startIndex:0,
-      endIndex: 100
-    })
-    console.log(res)
-    setUserList(res.data.data)
-    
+  async function getUsers(startIndex = 0, endIndex = 8) {
+    const res = await axios.post("/api/admin/users/range", {
+      startIndex: 0,
+      endIndex: 100,
+    });
+    console.log(res);
+    setUserList(res.data.data);
   }
 
   const handleEditUser = (user) => {
-    setSelectedUser(user)
-    setIsEditUserOpen(true)
-  }
+    setSelectedUser(user);
+    setIsEditUserOpen(true);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "Active":
-        return "default"
+        return "default";
       case "Inactive":
-        return "secondary"
+        return "secondary";
       case "Blocked":
-        return "destructive"
+        return "destructive";
       default:
-        return "secondary"
+        return "secondary";
     }
-  }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -166,7 +183,12 @@ export default function UsersPage() {
         <CardContent>
           <Tabs defaultValue="all">
             <TabsList className="mb-4 bg-zinc-100 text-gray-400">
-              <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-black">All Users</TabsTrigger>
+              <TabsTrigger
+                value="all"
+                className="data-[state=active]:bg-white data-[state=active]:text-black"
+              >
+                All Users
+              </TabsTrigger>
               {/* <TabsTrigger value="customers" className="data-[state=active]:bg-white data-[state=active]:text-black">Customers</TabsTrigger>
               <TabsTrigger value="admins" className="data-[state=active]:bg-white data-[state=active]:text-black">Admins</TabsTrigger>
               <TabsTrigger value="blocked" className="data-[state=active]:bg-white data-[state=active]:text-black">Blocked</TabsTrigger> */}
@@ -188,7 +210,7 @@ export default function UsersPage() {
                       </div>
                     </TableHead>
                     <TableHead>Role</TableHead>
-                    
+
                     <TableHead>
                       <div className="flex items-center">
                         Orders
@@ -219,7 +241,7 @@ export default function UsersPage() {
                           {user.role}
                         </div>
                       </TableCell>
-                     
+
                       <TableCell>{user.orders.length}</TableCell>
                       <TableCell>{user.reviews.length}</TableCell>
                       <TableCell className="text-right">
@@ -232,18 +254,30 @@ export default function UsersPage() {
                           <DropdownMenuContent align="end" className="bg-white">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleEditUser(user)}>Edit User</DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEditUser(user)}
+                            >
+                              Edit User
+                            </DropdownMenuItem>
                             <DropdownMenuItem>View Orders</DropdownMenuItem>
                             {user.role === "Customer" ? (
-                              <DropdownMenuItem>Promote to Admin</DropdownMenuItem>
+                              <DropdownMenuItem>
+                                Promote to Admin
+                              </DropdownMenuItem>
                             ) : (
-                              <DropdownMenuItem>Demote to Customer</DropdownMenuItem>
+                              <DropdownMenuItem>
+                                Demote to Customer
+                              </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
                             {user.status === "Active" ? (
-                              <DropdownMenuItem className="text-red-600">Block User</DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">
+                                Block User
+                              </DropdownMenuItem>
                             ) : user.status === "Blocked" ? (
-                              <DropdownMenuItem className="text-green-600">Unblock User</DropdownMenuItem>
+                              <DropdownMenuItem className="text-green-600">
+                                Unblock User
+                              </DropdownMenuItem>
                             ) : null}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -262,7 +296,9 @@ export default function UsersPage() {
         <DialogContent className="sm:max-w-[500px] bg-white">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user information and permissions</DialogDescription>
+            <DialogDescription>
+              Update user information and permissions
+            </DialogDescription>
           </DialogHeader>
           {selectedUser && (
             <div className="grid gap-4 py-4">
@@ -270,13 +306,21 @@ export default function UsersPage() {
                 <Label htmlFor="name" className="text-right">
                   Name
                 </Label>
-                <Input id="name" defaultValue={selectedUser.name} className="col-span-3" />
+                <Input
+                  id="name"
+                  defaultValue={selectedUser.name}
+                  className="col-span-3"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">
                   Email
                 </Label>
-                <Input id="email" defaultValue={selectedUser.email} className="col-span-3" />
+                <Input
+                  id="email"
+                  defaultValue={selectedUser.email}
+                  className="col-span-3"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="role" className="text-right">
@@ -313,11 +357,12 @@ export default function UsersPage() {
             <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsEditUserOpen(false)}>Save Changes</Button>
+            <Button onClick={() => setIsEditUserOpen(false)}>
+              Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-

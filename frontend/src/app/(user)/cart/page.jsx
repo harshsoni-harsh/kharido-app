@@ -1,16 +1,16 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
+import Loader from "@/components/Loader";
 import CartItems from "@/components/cart-items";
 import CartSummary from "@/components/cart-summary";
 import useCartStore from "@/store/CartStore";
-import Loader from "@/components/Loader";
 import { useUserStore } from "@/store/UserStore";
+import { ShoppingCart } from "lucide-react";
 import { useEffect } from "react";
 
 export default function Cart() {
   const { loading, fetchCart } = useCartStore();
-  
+
   const { user } = useUserStore();
 
   useEffect(() => {

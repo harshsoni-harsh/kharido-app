@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import useCartStore from "@/store/CartStore";
-import { useUserStore } from "@/store/UserStore";
+import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function CartItems() {
@@ -15,7 +13,7 @@ export default function CartItems() {
   const { cart, addToCart, removeFromCart, deleteFromCart, fetchCart } =
     useCartStore();
 
-  if (cart.length == 0) {
+  if (cart.length === 0) {
     return (
       <Card>
         <CardContent className="pt-6">

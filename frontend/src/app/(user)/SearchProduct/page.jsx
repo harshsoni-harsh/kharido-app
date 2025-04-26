@@ -1,9 +1,9 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
 import ProductCard from "@/components/ProductCard";
 import axios from "axios";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 const Search = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -56,12 +56,12 @@ const Search = () => {
       )}
     </div>
   );
-}
+};
 
 export default function SearchPage() {
   return (
     <Suspense>
       <Search />
     </Suspense>
-  )
+  );
 }

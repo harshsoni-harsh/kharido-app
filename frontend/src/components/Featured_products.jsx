@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import ProductCard from "./ProductCard";
 
 function Featured_products() {
   const router = useRouter();
@@ -12,7 +12,7 @@ function Featured_products() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await axios.post(`/api/public/get-products-range`, {
+        const res = await axios.post("/api/public/get-products-range", {
           startIndex: 0,
           endIndex: 5,
         });

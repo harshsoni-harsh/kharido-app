@@ -1,13 +1,13 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
-import { IndianRupee, Package, ShoppingCart, Users } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
+import { IndianRupee, Package, ShoppingCart, Users } from "lucide-react";
 import { useEffect } from "react";
 import { useState } from "react";
+import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 
 const dummyLast10MonthRevenue = [
   { month: "June", total: 119950 },
@@ -28,7 +28,7 @@ export default function Page() {
   const [lastMonthRevenue, setLastMonthRevenue] = useState(0);
   const [totalUsers, setTotalUsers] = useState(2341);
   const [last10MonthsRevenue, setLast10MonthRevenue] = useState(
-    dummyLast10MonthRevenue
+    dummyLast10MonthRevenue,
   );
 
   const chartData = [
@@ -290,7 +290,7 @@ export default function Page() {
                 <div className="space-y-8">
                   {recentOrders.map((i, idx) => (
                     <div className="flex items-center" key={idx}>
-                      <div className="h-9 w-9 rounded-full bg-primary/10"></div>
+                      <div className="h-9 w-9 rounded-full bg-primary/10" />
                       <div className="ml-4 space-y-1">
                         <p className="text-sm font-medium leading-none">
                           Customer {idx + 1}

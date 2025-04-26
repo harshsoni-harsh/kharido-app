@@ -1,12 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { Facebook, Github, Instagram, Linkedin, Twitter } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Facebook, Github, Instagram, Linkedin, Twitter } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 function Footer() {
   const [email, setEmail] = useState("");
@@ -26,11 +23,13 @@ function Footer() {
           {/* Brand Column */}
           <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-bold text-3xl text-green-500">Khareedo</span>
+              <span className="font-bold text-3xl text-green-500">
+                Khareedo
+              </span>
             </Link>
             <p className="text-muted-foreground text-md">
-            We offer the best selection of fresh, organic produce and groceries at competitive 
-            prices with excellent customer service.
+              We offer the best selection of fresh, organic produce and
+              groceries at competitive prices with excellent customer service.
             </p>
             <div className="flex gap-4 mt-2">
               <Link
@@ -96,7 +95,7 @@ function Footer() {
                   href="#"
                   className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
-                    Backery & Biscuit
+                  Backery & Biscuit
                 </Link>
               </li>
               <li>
@@ -122,12 +121,12 @@ function Footer() {
           <div>
             <h3 className="font-semibold text-lg mb-4">Customer Services</h3>
             <ul className="space-y-2">
-            <li>
+              <li>
                 <Link
                   href="#"
                   className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
-                    Countact Us
+                  Countact Us
                 </Link>
               </li>
               <li>
@@ -151,7 +150,7 @@ function Footer() {
                   href="#"
                   className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
-                    Return Policy
+                  Return Policy
                 </Link>
               </li>
               <li>
@@ -169,15 +168,17 @@ function Footer() {
           <div>
             <h3 className="font-semibold text-lg mb-4">Contact Us</h3>
             <ul className="space-y-2">
-                <li>
-                    <p className="hover:text-gray-500">123 south Rajendranagar, Delhi , 10001</p>
-                </li>
-                <li>
-                    <p className = "hover:text-gray-500">Email: Fresh@Khareedo.com</p>
-                </li>
-                <li>
-                    <p className = "hover:text-gray-500">Phone: +91 98233-78903</p>
-                </li>
+              <li>
+                <p className="hover:text-gray-500">
+                  123 south Rajendranagar, Delhi , 10001
+                </p>
+              </li>
+              <li>
+                <p className="hover:text-gray-500">Email: Fresh@Khareedo.com</p>
+              </li>
+              <li>
+                <p className="hover:text-gray-500">Phone: +91 98233-78903</p>
+              </li>
             </ul>
           </div>
         </div>

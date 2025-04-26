@@ -1,11 +1,11 @@
 "use client";
-import usePublicStore from "@/store/PublicStore";
-import { useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import ProductCard from "@/components/ProductCard";
 import Loader from "@/components/Loader";
+import ProductCard from "@/components/ProductCard";
+import { Button } from "@/components/ui/button";
+import usePublicStore from "@/store/PublicStore";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
 
 export default function CategoryClient({ categoryId }) {
   const {
@@ -21,7 +21,7 @@ export default function CategoryClient({ categoryId }) {
 
   const products = AllProducts[categoryId] ?? [];
   const categoryName = categories?.find(
-    (category) => category._id === categoryId
+    (category) => category._id === categoryId,
   )?.name;
 
   if (loading) return <Loader />;

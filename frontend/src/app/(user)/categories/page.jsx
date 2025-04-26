@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
+import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { useEffect, useState } from "react";
 function page() {
   const product = [
     {
@@ -51,10 +51,7 @@ function page() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await axios.post(
-          `/api/public/get-categories`,
-          {}
-        );
+        const res = await axios.post("/api/public/get-categories", {});
         const categories = res.data.data.categories;
 
         // Fetch products for each category
@@ -62,7 +59,7 @@ function page() {
           categories.map(async (category) => {
             const fetchedProducts = await fetchProducts(category._id);
             return { ...category, products: fetchedProducts };
-          })
+          }),
         );
 
         setCategoriesList(populatedCategories);
@@ -74,12 +71,9 @@ function page() {
 
     async function fetchProducts(categoryId) {
       try {
-        const res = await axios.post(
-          `/api/public/get-category`,
-          {
-            categoryId: categoryId,
-          }
-        );
+        const res = await axios.post("/api/public/get-category", {
+          categoryId: categoryId,
+        });
 
         // console.log(res.data.data.products);
         return res.data.data.products; // Return the products
@@ -95,7 +89,10 @@ function page() {
       <div className="">
         <div className="flex flex-col gap-6">
           {categoriesList.map((category, idx) => (
-            <div key={idx} className="flex flex-col rounded-2xl px-2 py-2 shadow-2xl">
+            <div
+              key={idx}
+              className="flex flex-col rounded-2xl px-2 py-2 shadow-2xl"
+            >
               <div className="flex  flex-row justify-between">
                 <div className="text-2xl mb-4 font-bold mt-4">
                   {category.name}

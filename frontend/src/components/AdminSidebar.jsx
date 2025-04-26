@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import {
   Box,
+  LayoutDashboard,
   Package,
   ShoppingCart,
-  Users, LayoutDashboard
+  Users,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
@@ -58,7 +59,7 @@ export function AdminSidebar() {
     <Sidebar>
       <SidebarHeader className="h-14 items-center border-b px-4 justify-center">
         <Link href="/admin" className="flex items-center gap-2 font-semibold">
-          <Package className="h-6 w-6"/>
+          <Package className="h-6 w-6" />
           <span>Grocery Admin</span>
         </Link>
       </SidebarHeader>
@@ -78,7 +79,7 @@ export function AdminSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t p-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-primary"></div>
+          <div className="h-8 w-8 rounded-full bg-primary" />
           <div>
             <p className="text-sm font-medium">Admin User</p>
             <p className="text-xs text-muted-foreground">admin@grocery.com</p>

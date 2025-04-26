@@ -1,7 +1,7 @@
-import { create } from "zustand";
 import axios from "axios";
-import { useUserStore } from "./UserStore";
 import { toast } from "sonner";
+import { create } from "zustand";
+import { useUserStore } from "./UserStore";
 
 const useCartStore = create((set, get) => ({
   cart: [],
@@ -14,7 +14,7 @@ const useCartStore = create((set, get) => ({
       const user = useUserStore.getState().user;
       if (!user) return;
 
-      const { data } = await axios.post(`/api/users/get-cart`, {
+      const { data } = await axios.post("/api/users/get-cart", {
         email: user.email ?? "amit.kumar@example.com",
       });
 
@@ -31,7 +31,7 @@ const useCartStore = create((set, get) => ({
         cart: cartItems,
         totalPrice: cartItems.reduce(
           (total, item) => total + item.price * item.quantity,
-          0
+          0,
         ),
       });
     } catch (error) {
@@ -52,7 +52,7 @@ const useCartStore = create((set, get) => ({
     if (existingProduct) {
       try {
         // If the product exists, update it on the server
-        const res = await fetch(`/api/users/update-cart`, {
+        const res = await fetch("/api/users/update-cart", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -68,14 +68,14 @@ const useCartStore = create((set, get) => ({
           const updatedCart = cart.map((item) =>
             item.id === product.id
               ? { ...item, quantity: item.quantity + 1 }
-              : item
+              : item,
           );
 
           set({
             cart: updatedCart,
             totalPrice: updatedCart?.reduce(
               (total, item) => total + item.price * item.quantity,
-              0
+              0,
             ),
           });
           toast.success("Product added successfully");
@@ -89,7 +89,7 @@ const useCartStore = create((set, get) => ({
     } else {
       // If it's a new product, add it locally and send an API request
       try {
-        const res = await fetch(`/api/users/update-cart`, {
+        const res = await fetch("/api/users/update-cart", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -117,7 +117,7 @@ const useCartStore = create((set, get) => ({
             cart: updatedCart,
             totalPrice: updatedCart?.reduce(
               (total, item) => total + item.price * item.quantity,
-              0
+              0,
             ),
           });
           toast.success("Product added successfully");
@@ -142,7 +142,7 @@ const useCartStore = create((set, get) => ({
 
     set({ loading: true });
     try {
-      const res = await fetch(`/api/users/update-cart`, {
+      const res = await fetch("/api/users/update-cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -160,7 +160,7 @@ const useCartStore = create((set, get) => ({
             ? cart.map((item) =>
                 item.id === productId
                   ? { ...item, quantity: item.quantity - 1 }
-                  : item
+                  : item,
               )
             : cart.filter((item) => item.id !== productId);
 
@@ -168,7 +168,7 @@ const useCartStore = create((set, get) => ({
           cart: updatedCart,
           totalPrice: updatedCart?.reduce(
             (total, item) => total + item.price * item.quantity,
-            0
+            0,
           ),
         });
       }
@@ -191,7 +191,7 @@ const useCartStore = create((set, get) => ({
 
     set({ loading: true });
     try {
-      const res = await fetch(`/api/users/update-cart`, {
+      const res = await fetch("/api/users/update-cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -210,7 +210,7 @@ const useCartStore = create((set, get) => ({
           cart: updatedCart,
           totalPrice: updatedCart?.reduce(
             (total, item) => total + item.price * item.quantity,
-            0
+            0,
           ),
         });
       }

@@ -1,15 +1,15 @@
-import { create } from "zustand";
 import axios from "axios";
+import { create } from "zustand";
 
 const usePublicStore = create((set, get) => ({
   categories: [],
   products: {},
   loading: false,
 
-  fetchCategories: async function () {
+  fetchCategories: async () => {
     set({ loading: true });
     try {
-      const res = await axios.post(`/api/public/get-categories`, {});
+      const res = await axios.post("/api/public/get-categories", {});
       const categories = res.data.data.categories;
       set({ categories });
     } catch (error) {
@@ -18,18 +18,18 @@ const usePublicStore = create((set, get) => ({
     set({ loading: false });
   },
 
-  fetchAllProducts: async function () {
+  fetchAllProducts: async () => {
     set({ loading: true });
     const { categories, fetchProducts } = get();
     await Promise.all(
-      categories.map(async (category) => await fetchProducts(category._id))
+      categories.map(async (category) => await fetchProducts(category._id)),
     );
     set({ loading: false });
   },
 
   fetchProducts: async (categoryId) => {
     try {
-      const res = await axios.post(`/api/public/get-category-products`, {
+      const res = await axios.post("/api/public/get-category-products", {
         categoryId: categoryId,
       });
 

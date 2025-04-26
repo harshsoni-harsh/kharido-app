@@ -1,18 +1,17 @@
 "use client";
-import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUserStore } from "@/store/UserStore";
-import { useEffect } from "react";
 import axios from "axios";
+import { useState } from "react";
+import { useEffect } from "react";
 
 const initialAddresses = [
   {
@@ -43,64 +42,57 @@ export default function YourAddresses() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { user, fetchUser } = useUserStore();
   useEffect(() => {
-    
     fetchAddresses();
   }, [user]);
 
   async function fetchAddresses() {
-    try{
-        const res = await axios.post("/api/users/get-meta", {
-            email: user?.email,
-          });
-      
-          setAddresses(res.data.address);
+    try {
+      const res = await axios.post("/api/users/get-meta", {
+        email: user?.email,
+      });
+
+      setAddresses(res.data.address);
+    } catch (error) {
+      console.log("fetchAddress error: ", error);
     }
-    catch(error){
-        console.log("fetchAddress error: ",error)
-    }
-    
   }
   const handleEditChange = (e) => {
     setEditingAddress({ ...editingAddress, [e.target.name]: e.target.value });
   };
 
   const handleEditSave = async () => {
-    try{
-        const newAddress = { ...editingAddress };
-        const res = await axios.post("/api/users/update-address", {
-          email: user?.email,
-          action: "update",
-          address: newAddress,
-        });
-        console.log(res.data);
-        alert(res.status);
-        fetchAddresses();
-        setShowCreateDialog(false);
-        setShowEditDialog(false);
+    try {
+      const newAddress = { ...editingAddress };
+      const res = await axios.post("/api/users/update-address", {
+        email: user?.email,
+        action: "update",
+        address: newAddress,
+      });
+      console.log(res.data);
+      alert(res.status);
+      fetchAddresses();
+      setShowCreateDialog(false);
+      setShowEditDialog(false);
+    } catch (error) {
+      console.log("Edit Address error: ", error);
     }
-    catch(error){
-        console.log("Edit Address error: ", error)
-    }
-   
   };
 
   const handleCreate = async () => {
-    try{
-        const newAddress = { ...editingAddress };
-        const res = await axios.post("/api/users/update-address", {
-          email: user?.email,
-          action: "create",
-          address: newAddress,
-        });
-        console.log(res.data);
-        alert(res.status);
-        fetchAddresses();
-        setShowCreateDialog(false);
+    try {
+      const newAddress = { ...editingAddress };
+      const res = await axios.post("/api/users/update-address", {
+        email: user?.email,
+        action: "create",
+        address: newAddress,
+      });
+      console.log(res.data);
+      alert(res.status);
+      fetchAddresses();
+      setShowCreateDialog(false);
+    } catch (error) {
+      console.log("Create address error: ", error);
     }
-    catch(error){
-        console.log("Create address error: ", error)
-    }
-   
   };
 
   return (
@@ -174,7 +166,7 @@ export default function YourAddresses() {
                         onChange={handleEditChange}
                       />
                     </div>
-                  )
+                  ),
               )}
               <Button onClick={handleEditSave}>Save Changes</Button>
             </div>

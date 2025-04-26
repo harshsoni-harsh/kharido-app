@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
 import CategoryCard from "@/components/CategoryCard.jsx";
 import axios from "axios";
+import { useEffect, useState } from "react";
 
 const CategoriesPage = () => {
   const [categoriesList, setCategoriesList] = useState([]);
@@ -9,10 +9,7 @@ const CategoriesPage = () => {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const res = await axios.post(
-          `/api/public/get-categories`,
-          {}
-        );
+        const res = await axios.post("/api/public/get-categories", {});
         setCategoriesList(res.data.data.categories);
       } catch (error) {
         console.error("Error fetching products:", error);

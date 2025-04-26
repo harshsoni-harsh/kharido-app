@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import ProductCard from "@/components/ProductCard";
-import usePublicStore from "@/store/PublicStore";
 import Loader from "@/components/Loader";
+import ProductCard from "@/components/ProductCard";
+import { Button } from "@/components/ui/button";
+import usePublicStore from "@/store/PublicStore";
+import { useEffect } from "react";
 
 export default function Page() {
   const { categories, products, loading, fetchCategories, fetchAllProducts } =
@@ -31,7 +31,9 @@ export default function Page() {
           >
             <div className="flex flex-row justify-between items-center">
               <div className="text-2xl font-bold">{category.name}</div>
-                <Button className="w-fit cursor-pointer h-fit text-semibold bg-green-500 rounded-2xl hover:bg-green-700">See all →</Button>
+              <Button className="w-fit cursor-pointer h-fit text-semibold bg-green-500 rounded-2xl hover:bg-green-700">
+                See all →
+              </Button>
             </div>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:flex 2xl:flex-wrap gap-6 w-full max-w-8xl items-center">
               {products[category._id]?.map((product, index) => (

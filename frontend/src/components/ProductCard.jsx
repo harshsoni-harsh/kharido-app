@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,11 +7,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import Image from "next/image";
-import { Star } from "lucide-react";
-import useCartStore from "../store/CartStore.js";
 import clsx from "clsx";
+import { Star } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import useCartStore from "../store/CartStore.js";
 
 function ProductCard({ id, imageLinks, name, rating, price }) {
   const { addToCart, cart } = useCartStore();
@@ -42,11 +42,12 @@ function ProductCard({ id, imageLinks, name, rating, price }) {
   };
 
   return (
-    <Card onClick={handleCardClick} className="gap-0 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-lg border-zinc-200 h-full">
+    <Card
+      onClick={handleCardClick}
+      className="gap-0 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-lg border-zinc-200 h-full"
+    >
       <CardHeader className="p-0">
-        <div
-          className="relative h-50 w-full max-h-50"
-        >
+        <div className="relative h-50 w-full max-h-50">
           {imageLinks?.length && (
             <Image
               src={imageLinks[0]}
@@ -61,7 +62,9 @@ function ProductCard({ id, imageLinks, name, rating, price }) {
       </CardHeader>
       <CardContent className={"h-full mt-4"}>
         <div className="space-y-2">
-          <h3 className="font-semibold text-lg">{name.length > 20 ? name.slice(0 ,  20)+"...":name}</h3>
+          <h3 className="font-semibold text-lg">
+            {name.length > 20 ? `${name.slice(0, 20)}...` : name}
+          </h3>
           <div className="flex items-center gap-2 mt-auto">
             {Array(5)
               .fill(0)
@@ -72,11 +75,13 @@ function ProductCard({ id, imageLinks, name, rating, price }) {
                     "h-4 w-4",
                     i < rating
                       ? "fill-orange-400"
-                      : "fill-muted text-muted-foreground"
+                      : "fill-muted text-muted-foreground",
                   )}
                 />
               ))}
-            <span className="text-sm text-muted-foreground">({rating ?? 0}/5)</span>
+            <span className="text-sm text-muted-foreground">
+              ({rating ?? 0}/5)
+            </span>
           </div>
           <div className="flex flex-row justify-between items-center flex-wrap">
             <p className="font-bold text-xl"> ₹{price.toFixed(2)} </p>

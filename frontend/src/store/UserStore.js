@@ -13,7 +13,7 @@ export const useUserStore = create((set) => ({
     } catch (err) {
       console.error(err);
       toast.error("Please login first.");
-      window.location.href = '/api/auth/google'
+      window.location.href = "/api/auth/google";
     }
   },
 }));
