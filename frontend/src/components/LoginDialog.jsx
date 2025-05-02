@@ -43,7 +43,7 @@ export default function LoginDialog({ isOpen, onOpenChange, userName }) {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      window.location.href = "/api/auth/google";
+      window.location.reload();
     }
   };
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function LoginDialog({ isOpen, onOpenChange, userName }) {
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">{userName ? userName : "Login"}</Button>
+        <Button variant="outline">{userName ? "My Account" : "Login"}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>

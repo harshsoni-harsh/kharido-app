@@ -12,25 +12,18 @@ import LoginDialog from "./LoginDialog";
 import { Button } from "./ui/button";
 
 export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { user, fetchUser } = useUserStore();
+  const { user, fetchUserIfSignedIn } = useUserStore();
   const { cart } = useCartStore();
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  const handleProfileClick = () => {
-    if (!isLoggedIn) {
-      setIsDialogOpen(true);
-    }
-  };
-
   useEffect(() => {
-    fetchUser();
+    fetchUserIfSignedIn();
   }, []);
 
   const handleSearch = (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
     if (searchQuery.trim()) {
       router.push(
         `/SearchProduct?query=${encodeURIComponent(searchQuery.trim())}`,
@@ -39,8 +32,8 @@ export default function Navbar() {
   };
 
   return (
-    <div className="sticky top-0 left-0 w-full z-50 shadow-md h-16 bg-white px-4 md:px-6">
-      <div className=" text-black   flex flex-row  gap-4 md:gap-8 mt-3 justify-between">
+    <div className="sticky top-0 left-0 w-full z-50 shadow-md bg-white px-4 md:px-6 py-3">
+      <div className="text-black flex gap-4 md:gap-8 justify-between items-center">
         <div className="flex flex-row  gap-6 md:gap-10">
           <div className="px-4  text-3xl font-semibold">
             <Link href="/" className="text-green-500">
@@ -59,17 +52,19 @@ export default function Navbar() {
                 <li>
                   <Link href={"/"}>About us</Link>
                 </li>
-                <li>
-                  <Link href={"/admin"}>Admin</Link>
-                </li>
+                {user?.role === "admin" && (
+                  <li>
+                    <Link href={"/admin"}>Admin</Link>
+                  </li>
+                )}
               </ul>
             </div>
           </div>
         </div>
-        <div className="flex flex-row gap-4 md:gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           <form
             onSubmit={handleSearch}
-            className="flex gap-2 w-full max-w-[30rem]"
+            className="flex items-center gap-2 w-full max-w-[30rem]"
           >
             <input
               type="text"
@@ -82,38 +77,6 @@ export default function Navbar() {
             <Button type="submit">Search</Button>
           </form>
           <div className="flex items-center gap-4">
-            {/* Profile Link */}
-            {isLoggedIn ? (
-              // When logged in, profile link navigates to profile page
-              <Link href="/profile" className="flex flex-col items-center">
-                <div className="cursor-pointer">
-                  <img
-                    src="/profile.svg"
-                    alt="Profile"
-                    className="w-7 h-7 rounded-full mt-0.5"
-                  />
-                </div>
-                <div className="text-xs">Profile</div>
-              </Link>
-            ) : (
-              // When not logged in, profile link opens login dialog
-              <div
-                className="flex flex-col items-center cursor-pointer"
-                onClick={handleProfileClick}
-              >
-                <div>
-                  <img
-                    src="/profile.svg"
-                    alt="Profile"
-                    className="w-7 h-7 rounded-full mt-0.5"
-                  />
-                </div>
-                <div className="text-xs text-nowrap truncate">
-                  {user?.name ?? "Login"}
-                </div>
-              </div>
-            )}
-
             <LoginDialog
               isOpen={isDialogOpen}
               onOpenChange={setIsDialogOpen}

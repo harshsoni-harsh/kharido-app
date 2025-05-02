@@ -8,7 +8,6 @@ export default function Home() {
       <Banner />
       <CategoriesPage />
       <Featured_products />
-      {/* <ProductCard image={"/images/Backery_biscuit.jpg"} name={"Apple"} price={112} rating={4}  key={9} /> */}
     </div>
   );
 }

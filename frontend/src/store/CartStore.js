@@ -47,7 +47,10 @@ const useCartStore = create((set, get) => ({
     const existingProduct = cart.find((item) => item.id === product.id);
 
     const user = useUserStore.getState().user;
-    if (!user) return;
+    if (!user) {
+      toast("Please login first");
+      return;
+    }
 
     if (existingProduct) {
       try {

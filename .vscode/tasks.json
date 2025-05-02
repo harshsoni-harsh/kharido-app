@@ -77,13 +77,35 @@
         "problemMatcher": []
       },
       {
-        "label": "Start All Services",
+        "label": "Start Frontend",
+        "type": "shell",
+        "command": "pnpm dev",
+        "options": {
+          "cwd": "${workspaceFolder}/frontend"
+        },
+        "isBackground": true,
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start Backend Services",
         "dependsOn": [
           "Start Auth Service",
           "Start API Gateway",
           "Start Admin Service",
           "Start Public Service",
           "Start Users Service"
+        ],
+        "dependsOrder": "parallel"
+      },
+      {
+        "label": "Start Kharido App",
+        "dependsOn": [
+          "Start Backend Services",
+          "Start Frontend"
         ],
         "dependsOrder": "parallel"
       }

@@ -126,7 +126,7 @@ function Footer() {
                   href="#"
                   className="text-muted-foreground transition-colors hover:text-gray-500"
                 >
-                  Countact Us
+                  Contact Us
                 </Link>
               </li>
               <li>
