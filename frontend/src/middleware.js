@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 
 export async function middleware(request) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const cookie = request.headers.get("jwt");
+  const jwt = request.cookies.get("jwt")?.value;
 
-  if (!cookie) {
+  if (!jwt) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
   const authRes = await fetch(`${baseUrl}/api/auth/me`, {
-    headers: { Cookie: cookie },
+    headers: { Cookie: `jwt=${jwt}` },
   });
   const data = await authRes.json();
 
@@ -17,7 +17,7 @@ export async function middleware(request) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Cookie: cookie,
+      Cookie: `jwt=${jwt}`,
     },
     body: JSON.stringify({ email: data?.email }),
   });
